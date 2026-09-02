@@ -57,3 +57,71 @@ Engineering Request
                         │
                         ▼
                 Approval Note (.DOCX)
+
+System Requirements
+OS: Ubuntu 22.04+ recommended
+Python: 3.10+
+RAM: 8 GB minimum, 16 GB recommended
+Storage: 10 GB+ free space
+CPU: Modern x86_64 processor
+GPU: Not required for the current Qwen 2.5 3B setup
+Git: Required
+Ollama: Required
+Docker: Optional
+
+Windows: Can be used through WSL2, but Ubuntu/Linux is recommended for development and deployment.
+
+Installation
+1. Clone the Repository
+git clone https://github.com/NeerajaSurati-265/VAULTA.git
+cd VAULTA
+2. Create Python Virtual Environment
+python3 -m venv .venv
+source .venv/bin/activate
+3. Install Python Dependencies
+pip install -r requirements.txt
+4. Install Ollama
+
+Install Ollama on your system, then download the local AI model:
+
+ollama pull qwen2.5:3b
+
+Verify the model:
+
+ollama list
+
+You should see:
+
+qwen2.5:3b
+5. Start Ollama
+
+If Ollama is not already running:
+
+ollama serve
+
+VAULTA uses Ollama to run Qwen 2.5 3B locally. No OpenAI/Gemini API key is required for the core runtime.
+
+6. Run VAULTA
+
+From the project root:
+
+source .venv/bin/activate
+PYTHONPATH=. streamlit run app/ui.py
+
+Open the local Streamlit URL displayed in the terminal.
+
+Quick Setup
+
+For a fresh Ubuntu machine:
+
+git clone https://github.com/NeerajaSurati-265/VAULTA.git
+cd VAULTA
+
+python3 -m venv .venv
+source .venv/bin/activate
+
+pip install -r requirements.txt
+
+ollama pull qwen2.5:3b
+
+PYTHONPATH=. streamlit run app/ui.py
