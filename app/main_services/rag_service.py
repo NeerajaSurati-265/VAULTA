@@ -10,21 +10,65 @@ import faiss
 import fitz
 from sklearn.feature_extraction.text import HashingVectorizer
 
-from app.config import DOCUMENTS_DIR, INDEX_DIR
-from app.main_services.ollama_service import ask_local_ai, MODEL
+from app.config import DOCUMENTS_DIR, INDEX_DIR, RETRIEVAL_MODE, EMBED_MODEL
+from app.main_services.ollama_service import ask_local_ai, embed_texts, MODEL
 
 
 logger = logging.getLogger(__name__)
 
 EMBEDDING_DIM = 1024
-RETRIEVAL_MODES = ("hashing",)
+RETRIEVAL_MODES = ("hashing", "semantic")
 INDEX_FILENAME = "knowledge.faiss"
 META_FILENAME = "knowledge_meta.json"
 
 
+class HashingEmbedder:
+    """Hashed word/bigram vectors: deterministic, no model, but keyword-only."""
+
+    def __init__(self, dimension: int = EMBEDDING_DIM):
+        self.name = f"hashing-{dimension}"
+        self.vectorizer = HashingVectorizer(
+            n_features=dimension,
+            norm="l2",
+            ngram_range=(1, 2),
+            alternate_sign=False,
+        )
+
+    def embed_documents(self, texts: List[str]) -> np.ndarray:
+        matrix = self.vectorizer.transform(texts).toarray().astype("float32")
+        faiss.normalize_L2(matrix)
+        return matrix
+
+    def embed_query(self, text: str) -> np.ndarray:
+        return self.embed_documents([text])
+
+
+class OllamaEmbedder:
+    """Semantic vectors from a local Ollama embedding model (e.g. nomic-embed-text)."""
+
+    def __init__(self, model: str = EMBED_MODEL):
+        self.name = model
+        # nomic-embed models are trained with task prefixes and retrieve noticeably
+        # worse without them; other models get the raw text.
+        uses_prefixes = model.startswith("nomic-embed")
+        self.document_prefix = "search_document: " if uses_prefixes else ""
+        self.query_prefix = "search_query: " if uses_prefixes else ""
+
+    def _embed(self, texts: List[str]) -> np.ndarray:
+        matrix = np.array(embed_texts(texts), dtype="float32")
+        faiss.normalize_L2(matrix)  # unit length, so inner product == cosine similarity
+        return matrix
+
+    def embed_documents(self, texts: List[str]) -> np.ndarray:
+        return self._embed([self.document_prefix + t for t in texts])
+
+    def embed_query(self, text: str) -> np.ndarray:
+        return self._embed([self.query_prefix + text])
+
+
 class LocalKnowledgeBase:
     """
-    Sovereign, local document knowledge base using deterministic local embeddings + FAISS.
+    Sovereign, local document knowledge base using local embeddings + FAISS.
     """
 
     def __init__(
@@ -32,20 +76,20 @@ class LocalKnowledgeBase:
         dimension: int = EMBEDDING_DIM,
         index_dir: Optional[Path] = None,
         documents_dir: Optional[Path] = None,
-        retrieval_mode: str = "hashing",
+        retrieval_mode: Optional[str] = None,
     ):
-        if retrieval_mode not in RETRIEVAL_MODES:
-            raise ValueError(f"Unknown retrieval mode {retrieval_mode!r}; expected one of {RETRIEVAL_MODES}")
-        self.retrieval_mode = retrieval_mode
-        self.dimension = dimension
+        self.retrieval_mode = (retrieval_mode or RETRIEVAL_MODE).lower()
+        if self.retrieval_mode not in RETRIEVAL_MODES:
+            raise ValueError(
+                f"Unknown retrieval mode {self.retrieval_mode!r}; expected one of {RETRIEVAL_MODES}"
+            )
         self.index_dir = Path(index_dir or INDEX_DIR)
-        self.vectorizer = HashingVectorizer(
-            n_features=dimension,
-            norm="l2",
-            ngram_range=(1, 2),
-            alternate_sign=False,
-        )
-        self.index = faiss.IndexFlatIP(dimension)
+        if self.retrieval_mode == "hashing":
+            self.embedder = HashingEmbedder(dimension)
+        else:
+            self.embedder = OllamaEmbedder()
+        # Created on the first add: the dimension comes from the embedding model
+        self.index: Optional[faiss.Index] = None
         self.chunks: List[Dict[str, Any]] = []
         # filename -> {"chunks": count, "sha256": hash of the PDF bytes}
         self.indexed_files: Dict[str, Dict[str, Any]] = {}
@@ -56,14 +100,18 @@ class LocalKnowledgeBase:
         self._auto_load_documents(Path(documents_dir or DOCUMENTS_DIR))
 
     def _load_from_disk(self):
-        """Restores the index saved by _save_to_disk, if it exists and is consistent."""
+        """Restores the knowledge base saved by _save_to_disk.
+
+        Chunks are always restored. The saved vectors are reused only if they came
+        from the same embedding model and line up with the chunks; otherwise the
+        chunk texts are re-embedded, so uploaded PDFs survive a mode/model switch.
+        """
         index_path = self.index_dir / INDEX_FILENAME
         meta_path = self.index_dir / META_FILENAME
-        if not (index_path.exists() and meta_path.exists()):
+        if not meta_path.exists():
             return
 
         try:
-            index = faiss.read_index(str(index_path))
             meta = json.loads(meta_path.read_text(encoding="utf-8"))
             chunks = meta["chunks"]
             indexed_files = meta["indexed_files"]
@@ -71,41 +119,68 @@ class LocalKnowledgeBase:
             logger.exception("Could not read saved knowledge base in %s; rebuilding it.", self.index_dir)
             return
 
-        # chunk i must describe vector i, otherwise retrieval returns the wrong text
-        if index.d != self.dimension or index.ntotal != len(chunks):
-            logger.warning(
-                "Saved knowledge base in %s is inconsistent (dim %d vs %d, vectors %d vs chunks %d); rebuilding it.",
-                self.index_dir, index.d, self.dimension, index.ntotal, len(chunks),
-            )
-            return
-
-        self.index = index
         self.chunks = chunks
         # Older saves stored just the chunk count; hash unknown -> treated as unchanged
         self.indexed_files = {
             name: info if isinstance(info, dict) else {"chunks": info, "sha256": None}
             for name, info in indexed_files.items()
         }
-        logger.info(
-            "Loaded knowledge base from %s: %d documents, %d chunks",
-            self.index_dir, len(self.indexed_files), len(self.chunks),
+        if not self.chunks:
+            return
+
+        # Saves from before retrieval modes existed were always hashing-1024
+        saved_model = meta.get("embed_model", f"hashing-{EMBEDDING_DIM}")
+        index = None
+        if saved_model == self.embedder.name and index_path.exists():
+            try:
+                index = faiss.read_index(str(index_path))
+            except Exception:
+                logger.exception("Could not read saved vectors in %s.", index_path)
+
+        # chunk i must describe vector i, otherwise retrieval returns the wrong text
+        if index is not None and index.ntotal == len(self.chunks):
+            self.index = index
+            logger.info(
+                "Loaded knowledge base from %s: %d documents, %d chunks (mode=%s, vectors=%s)",
+                self.index_dir, len(self.indexed_files), len(self.chunks),
+                self.retrieval_mode, saved_model,
+            )
+            return
+
+        # Re-embedding needs the current embedder (Ollama for semantic). If that
+        # fails we let it raise: starting with an empty knowledge base and saving
+        # over the old one would silently lose uploaded documents.
+        logger.warning(
+            "Saved vectors in %s do not match (saved %s mode=%s, now %s mode=%s); re-embedding %d chunks.",
+            self.index_dir, saved_model, meta.get("retrieval_mode", "hashing"),
+            self.embedder.name, self.retrieval_mode, len(self.chunks),
         )
+        embeddings = self.embedder.embed_documents([c["text"] for c in self.chunks])
+        self.index = faiss.IndexFlatIP(embeddings.shape[1])
+        self.index.add(embeddings)
+        with self._lock:
+            self._save_to_disk()
 
     def _save_to_disk(self):
         """Writes index + metadata. Caller must hold self._lock."""
         self.index_dir.mkdir(parents=True, exist_ok=True)
         index_path = self.index_dir / INDEX_FILENAME
         meta_path = self.index_dir / META_FILENAME
+        meta = {
+            "retrieval_mode": self.retrieval_mode,
+            "embed_model": self.embedder.name,
+            "dimension": self.index.d if self.index is not None else None,
+            "chunks": self.chunks,
+            "indexed_files": self.indexed_files,
+        }
 
         # Write to temp files, then rename: a crash mid-write cannot leave a half-written index
-        tmp_index = index_path.with_suffix(".tmp")
         tmp_meta = meta_path.with_suffix(".tmp")
-        faiss.write_index(self.index, str(tmp_index))
-        tmp_meta.write_text(
-            json.dumps({"chunks": self.chunks, "indexed_files": self.indexed_files}),
-            encoding="utf-8",
-        )
-        os.replace(tmp_index, index_path)
+        tmp_meta.write_text(json.dumps(meta), encoding="utf-8")
+        if self.index is not None:
+            tmp_index = index_path.with_suffix(".tmp")
+            faiss.write_index(self.index, str(tmp_index))
+            os.replace(tmp_index, index_path)
         os.replace(tmp_meta, meta_path)
 
     def _auto_load_documents(self, dir_path: Path):
@@ -121,13 +196,6 @@ class LocalKnowledgeBase:
                 # Log and keep going so one broken PDF does not block the others
                 logger.exception("Failed to auto-ingest %s", full_p)
 
-
-    def _embed_texts(self, texts: List[str]) -> np.ndarray:
-        if not texts:
-            return np.empty((0, self.dimension), dtype="float32")
-        matrix = self.vectorizer.transform(texts).toarray().astype("float32")
-        faiss.normalize_L2(matrix)
-        return matrix
 
     def chunk_document_text(
         self,
@@ -222,8 +290,8 @@ class LocalKnowledgeBase:
                 "message": "No selectable text was extracted from this PDF.",
             }
 
-        texts_to_embed = [c["text"] for c in new_chunks]
-        embeddings = self._embed_texts(texts_to_embed)
+        # Embed outside the lock: for semantic mode this is a (slow) Ollama call
+        embeddings = self.embedder.embed_documents([c["text"] for c in new_chunks])
 
         with self._lock:
             # Re-check: another thread may have ingested the same file meanwhile
@@ -239,6 +307,8 @@ class LocalKnowledgeBase:
             for i, c in enumerate(new_chunks):
                 c["chunk_id"] = start_idx + i
 
+            if self.index is None:
+                self.index = faiss.IndexFlatIP(embeddings.shape[1])
             self.index.add(embeddings)
             self.chunks.extend(new_chunks)
             self.indexed_files[filename] = {"chunks": len(new_chunks), "sha256": sha256}
@@ -267,7 +337,8 @@ class LocalKnowledgeBase:
         ids = [i for i, c in enumerate(self.chunks) if c["doc_name"] == filename]
         # IndexFlat.remove_ids shifts the remaining vectors down but keeps their
         # order, so filtering self.chunks the same way keeps vector i == chunk i.
-        self.index.remove_ids(np.array(ids, dtype="int64"))
+        if self.index is not None:
+            self.index.remove_ids(np.array(ids, dtype="int64"))
         self.chunks = [c for c in self.chunks if c["doc_name"] != filename]
         for i, c in enumerate(self.chunks):
             c["chunk_id"] = i
@@ -282,31 +353,45 @@ class LocalKnowledgeBase:
             "message": f"{filename} is already in the knowledge base; skipped.",
         }
 
-    def retrieve(self, query: str, top_k: int = 3) -> List[Dict[str, Any]]:
-        """
-        Retrieves top_k most relevant chunks using FAISS cosine similarity.
-        """
-        if not query or not query.strip() or len(self.chunks) == 0:
-            return []
-
-        q_vec = self._embed_texts([query.strip()])
+    def _vector_search(self, query: str, n: int) -> List[Dict[str, Any]]:
+        """Top-n chunks by cosine similarity, as copies with score and vector_rank."""
+        q_vec = self.embedder.embed_query(query)  # outside the lock: may call Ollama
 
         # Searching while another thread adds vectors is not safe in FAISS
         with self._lock:
-            k = min(top_k, len(self.chunks))
-            scores, indices = self.index.search(q_vec, k)
+            if self.index is None or not self.chunks:
+                return []
+            scores, indices = self.index.search(q_vec, min(n, len(self.chunks)))
             results = []
-
             for score, idx in zip(scores[0], indices[0]):
-                if idx >= 0 and idx < len(self.chunks):
+                if 0 <= idx < len(self.chunks):
                     chunk = dict(self.chunks[idx])
                     chunk["score"] = round(float(score), 4)
+                    chunk["vector_rank"] = len(results) + 1
                     results.append(chunk)
+        return results
+
+    def retrieve(self, query: str, top_k: int = 3) -> List[Dict[str, Any]]:
+        """
+        Retrieves the top_k most relevant chunks using the configured retrieval mode.
+        """
+        if not query or not query.strip() or len(self.chunks) == 0:
+            return []
+        query = query.strip()
+
+        results = self._vector_search(query, top_k)
+        for chunk in results:
+            chunk["bm25_rank"] = None
+            chunk["retrieval_mode"] = self.retrieval_mode
 
         logger.info(
-            "Retrieved %d chunks for query %r: %s",
-            len(results), query.strip()[:200],
-            ", ".join(f"{c['doc_name']} p.{c['page_number']} score={c['score']}" for c in results),
+            "Retrieved %d chunks (mode=%s) for query %r: %s",
+            len(results), self.retrieval_mode, query[:200],
+            ", ".join(
+                f"{c['doc_name']} p.{c['page_number']} score={c['score']} "
+                f"bm25_rank={c['bm25_rank']} vector_rank={c['vector_rank']}"
+                for c in results
+            ),
         )
         return results
 
@@ -370,9 +455,11 @@ Provide your grounded response:"""
             "total_chunks": len(self.chunks),
             "indexed_documents": list(self.indexed_files.keys()),
             "documents_count": len(self.indexed_files),
-            "index_dimension": self.dimension,
-            "faiss_total": self.index.ntotal,
-            "processor": "FAISS (IndexFlatIP) + Local HashingVectorizer",
+            "index_dimension": self.index.d if self.index is not None else None,
+            "faiss_total": self.index.ntotal if self.index is not None else 0,
+            "retrieval_mode": self.retrieval_mode,
+            "embed_model": self.embedder.name,
+            "processor": f"FAISS (IndexFlatIP) + {self.embedder.name}",
         }
 
 

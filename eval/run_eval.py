@@ -30,7 +30,7 @@ sys.path.insert(0, str(REPO_ROOT))
 # Importing rag_service builds the app's global knowledge base; point it at a
 # throwaway dir in the cheapest mode so the eval never touches data/index.
 os.environ["VAULTA_INDEX_DIR"] = tempfile.mkdtemp(prefix="vaulta-eval-global-")
-os.environ["VAULTA_RETRIEVAL_MODE"] = "bm25"
+os.environ["VAULTA_RETRIEVAL_MODE"] = "hashing"
 
 from app.config import DOCUMENTS_DIR  # noqa: E402
 from app.main_services.rag_service import LocalKnowledgeBase, RETRIEVAL_MODES  # noqa: E402

@@ -98,12 +98,13 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 4. Install Ollama and pull the model
+### 4. Install Ollama and pull the models
 
 ```bash
 curl -fsSL https://ollama.com/install.sh | sh
-ollama pull qwen2.5:3b
-ollama list          # qwen2.5:3b should be listed
+ollama pull qwen2.5:3b          # chat / reasoning model
+ollama pull nomic-embed-text    # embedding model for knowledge-base search
+ollama list                     # both should be listed
 ```
 
 On Ubuntu the installer runs Ollama as a background service. If `ollama list` says it cannot connect, start the server in a separate terminal:
@@ -120,7 +121,7 @@ No OpenAI/Gemini API key is needed. All inference runs locally through Ollama.
 ./run.sh
 ```
 
-`run.sh` checks that Ollama is reachable and the model is pulled, starts the FastAPI backend on port 8000, waits for it to be healthy, and then starts the Streamlit UI. Open the URL Streamlit prints (usually http://localhost:8501). Press `Ctrl+C` to stop both.
+`run.sh` checks that Ollama is reachable and the required models are pulled, starts the FastAPI backend on port 8000, waits for it to be healthy, and then starts the Streamlit UI. Open the URL Streamlit prints (usually http://localhost:8501). Press `Ctrl+C` to stop both.
 
 ---
 
@@ -138,6 +139,7 @@ pip install -r requirements.txt
 
 curl -fsSL https://ollama.com/install.sh | sh
 ollama pull qwen2.5:3b
+ollama pull nomic-embed-text
 
 ./run.sh
 ```
@@ -175,7 +177,12 @@ All settings live in `app/config.py` and can be overridden with environment vari
 | `OLLAMA_URL` | `http://127.0.0.1:11434` | Ollama server URL |
 | `VAULTA_MODEL` | `qwen2.5:3b` | Ollama model used for all LLM calls |
 | `OLLAMA_TIMEOUT` | `300` | Seconds to wait for one Ollama response |
+| `VAULTA_RETRIEVAL_MODE` | see `app/config.py` | Knowledge-base search: `hashing`, `bm25`, `semantic` or `hybrid` (see "How retrieval works") |
+| `VAULTA_EMBED_MODEL` | `nomic-embed-text` | Ollama embedding model for `semantic` / `hybrid` |
+| `VAULTA_EMBED_BATCH` | `32` | Texts per embedding request |
 | `VAULTA_BACKEND_URL` | `http://127.0.0.1:8000` | Backend URL used by the UI (and by `run.sh` to pick host/port) |
+| `VAULTA_UI_REQUEST_TIMEOUT` | `2 × OLLAMA_TIMEOUT + 30` | Seconds the UI waits for the backend |
+| `VAULTA_INDEX_DIR` | `data/index` | Where the knowledge-base index is saved |
 | `VAULTA_LOG_LEVEL` | `INFO` | Backend log level (`DEBUG`, `INFO`, `WARNING`, ...) |
 
 Data paths are resolved relative to the repo root, so it does not matter which directory you start from:

@@ -14,24 +14,36 @@ if [[ -z "${VIRTUAL_ENV:-}" && -f "$REPO_ROOT/.venv/bin/activate" ]]; then
     source "$REPO_ROOT/.venv/bin/activate"
 fi
 
-OLLAMA_URL="${OLLAMA_URL:-http://127.0.0.1:11434}"
-VAULTA_MODEL="${VAULTA_MODEL:-qwen2.5:3b}"
-VAULTA_BACKEND_URL="${VAULTA_BACKEND_URL:-http://127.0.0.1:8000}"
-export OLLAMA_URL VAULTA_MODEL VAULTA_BACKEND_URL
+# Read the effective settings from app/config.py (env vars + defaults) so
+# run.sh and the app can never disagree about a default.
+read -r OLLAMA_URL VAULTA_MODEL VAULTA_BACKEND_URL VAULTA_RETRIEVAL_MODE VAULTA_EMBED_MODEL < <(python -c "
+from app import config as c
+print(c.OLLAMA_URL, c.MODEL, c.BACKEND_URL, c.RETRIEVAL_MODE, c.EMBED_MODEL)")
+export OLLAMA_URL VAULTA_MODEL VAULTA_BACKEND_URL VAULTA_RETRIEVAL_MODE VAULTA_EMBED_MODEL
 
-# --- 1. Check Ollama is reachable and the model is pulled ---
+# --- 1. Check Ollama is reachable and the models are pulled ---
 if ! tags="$(curl -fsS -m 5 "$OLLAMA_URL/api/tags" 2>/dev/null)"; then
     echo "ERROR: Cannot reach Ollama at $OLLAMA_URL." >&2
     echo "       Install it from https://ollama.com and start it with: ollama serve" >&2
     exit 1
 fi
-# Ollama lists models as "name":"qwen2.5:3b"; match that exact string
-if ! grep -qF "\"name\":\"$VAULTA_MODEL\"" <<<"$tags"; then
-    echo "ERROR: Model '$VAULTA_MODEL' is not pulled in Ollama." >&2
-    echo "       Run: ollama pull $VAULTA_MODEL" >&2
-    exit 1
-fi
-echo "Ollama OK at $OLLAMA_URL (model: $VAULTA_MODEL)"
+# Ollama lists models as "name":"qwen2.5:3b"; untagged pulls appear as "<name>:latest"
+has_model() {
+    grep -qF "\"name\":\"$1\"" <<<"$tags" || grep -qF "\"name\":\"$1:latest\"" <<<"$tags"
+}
+require_model() {
+    if ! has_model "$1"; then
+        echo "ERROR: Model '$1' is not pulled in Ollama." >&2
+        echo "       Run: ollama pull $1" >&2
+        exit 1
+    fi
+}
+require_model "$VAULTA_MODEL"
+# Only the semantic retrieval modes need the embedding model
+case "$VAULTA_RETRIEVAL_MODE" in
+    semantic|hybrid) require_model "$VAULTA_EMBED_MODEL" ;;
+esac
+echo "Ollama OK at $OLLAMA_URL (chat model: $VAULTA_MODEL, retrieval: $VAULTA_RETRIEVAL_MODE, embed model: $VAULTA_EMBED_MODEL)"
 
 # --- 2. Start the backend in the background ---
 # Host/port are taken from VAULTA_BACKEND_URL so the UI and backend always agree

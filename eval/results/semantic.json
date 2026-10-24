@@ -1,0 +1,1884 @@
+{
+  "mode": "semantic",
+  "embed_model": "nomic-embed-text",
+  "top_k": 5,
+  "documents": 7,
+  "chunks": 24,
+  "index_seconds": 2.57,
+  "summary": {
+    "overall": {
+      "n": 40,
+      "hit@1": 0.65,
+      "hit@3": 0.9,
+      "hit@5": 0.9,
+      "mrr": 0.7583333333333332,
+      "ms_per_query": 30.45825
+    },
+    "lexical": {
+      "n": 15,
+      "hit@1": 0.8666666666666667,
+      "hit@3": 1.0,
+      "hit@5": 1.0,
+      "mrr": 0.9222222222222222,
+      "ms_per_query": 29.760666666666665
+    },
+    "paraphrase": {
+      "n": 15,
+      "hit@1": 0.6,
+      "hit@3": 0.9333333333333333,
+      "hit@5": 0.9333333333333333,
+      "mrr": 0.7555555555555554,
+      "ms_per_query": 33.349333333333334
+    },
+    "exact": {
+      "n": 10,
+      "hit@1": 0.4,
+      "hit@3": 0.7,
+      "hit@5": 0.7,
+      "mrr": 0.5166666666666666,
+      "ms_per_query": 27.168
+    }
+  },
+  "questions": [
+    {
+      "id": 1,
+      "question": "How often must grease levels be inspected on Pump-402?",
+      "expected_doc": "SOP-PUMP-402.pdf",
+      "expected_page": 1,
+      "type": "lexical",
+      "rank": 1,
+      "ms": 31.33,
+      "top": [
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 1,
+          "score": 0.7932,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.7113,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 2,
+          "score": 0.6468,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 3,
+          "score": 0.6429,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.6376,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "question": "What is the normal operating vibration for the centrifugal feed pump?",
+      "expected_doc": "SOP-PUMP-402.pdf",
+      "expected_page": 2,
+      "type": "lexical",
+      "rank": 3,
+      "ms": 33.68,
+      "top": [
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 1,
+          "score": 0.7574,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.7566,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 2,
+          "score": 0.6916,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.6228,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 2,
+          "score": 0.6225,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "question": "What cavitation erosion was observed on the impeller edges?",
+      "expected_doc": "pump_inspection.pdf",
+      "expected_page": 1,
+      "type": "lexical",
+      "rank": 1,
+      "ms": 30.34,
+      "top": [
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.6591,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 3,
+          "score": 0.6049,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 3,
+          "score": 0.5823,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.5806,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 1,
+          "score": 0.5356,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "question": "What is the discharge temperature alarm for the compressor?",
+      "expected_doc": "SOP-COMP-210.pdf",
+      "expected_page": 2,
+      "type": "lexical",
+      "rank": 1,
+      "ms": 27.46,
+      "top": [
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 2,
+          "score": 0.7258,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.6996,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.6868,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 2,
+          "score": 0.6565,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 3,
+          "score": 0.6198,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "question": "How often should the compressor oil be changed?",
+      "expected_doc": "SOP-COMP-210.pdf",
+      "expected_page": 3,
+      "type": "lexical",
+      "rank": 1,
+      "ms": 28.9,
+      "top": [
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 3,
+          "score": 0.8076,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.6867,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.6807,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 1,
+          "score": 0.6563,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 3,
+          "score": 0.6511,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "question": "How often should condensate traps be drained?",
+      "expected_doc": "SOP-COMP-210.pdf",
+      "expected_page": 3,
+      "type": "lexical",
+      "rank": 1,
+      "ms": 29.36,
+      "top": [
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 3,
+          "score": 0.671,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.6287,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 2,
+          "score": 0.6286,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 3,
+          "score": 0.6234,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.6199,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "question": "What is the maximum temperature for heating a bearing with an induction heater?",
+      "expected_doc": "MAN-BRG-115.pdf",
+      "expected_page": 1,
+      "type": "lexical",
+      "rank": 1,
+      "ms": 31.36,
+      "top": [
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 1,
+          "score": 0.7498,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 2,
+          "score": 0.7168,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 2,
+          "score": 0.7097,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.6594,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 2,
+          "score": 0.6591,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "question": "What causes fluting on a bearing?",
+      "expected_doc": "MAN-BRG-115.pdf",
+      "expected_page": 3,
+      "type": "lexical",
+      "rank": 1,
+      "ms": 27.08,
+      "top": [
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 3,
+          "score": 0.7582,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 1,
+          "score": 0.6534,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 2,
+          "score": 0.643,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 3,
+          "score": 0.6275,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 2,
+          "score": 0.625,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "question": "Which grease consistency should be used for bearing lubrication?",
+      "expected_doc": "MAN-BRG-115.pdf",
+      "expected_page": 2,
+      "type": "lexical",
+      "rank": 1,
+      "ms": 30.35,
+      "top": [
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 2,
+          "score": 0.8111,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 1,
+          "score": 0.7256,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 1,
+          "score": 0.725,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.6756,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.6689,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "question": "How do I verify zero energy before servicing?",
+      "expected_doc": "SOP-LOTO-001.pdf",
+      "expected_page": 2,
+      "type": "lexical",
+      "rank": 1,
+      "ms": 25.32,
+      "top": [
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 2,
+          "score": 0.6609,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.6457,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 3,
+          "score": 0.6168,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.6114,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 1,
+          "score": 0.6027,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "question": "When should a group lockout box be used?",
+      "expected_doc": "SOP-LOTO-001.pdf",
+      "expected_page": 3,
+      "type": "lexical",
+      "rank": 1,
+      "ms": 28.34,
+      "top": [
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 3,
+          "score": 0.7886,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 1,
+          "score": 0.6528,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 1,
+          "score": 0.6251,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.5777,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 3,
+          "score": 0.5738,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "question": "What was the insulation resistance measured on the motor?",
+      "expected_doc": "RPT-MTR-330.pdf",
+      "expected_page": 1,
+      "type": "lexical",
+      "rank": 1,
+      "ms": 25.97,
+      "top": [
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 1,
+          "score": 0.7684,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 2,
+          "score": 0.6628,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 2,
+          "score": 0.6405,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.623,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 1,
+          "score": 0.6171,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "question": "What hot spot did thermography find on the terminal box?",
+      "expected_doc": "RPT-MTR-330.pdf",
+      "expected_page": 2,
+      "type": "lexical",
+      "rank": 1,
+      "ms": 31.03,
+      "top": [
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 2,
+          "score": 0.637,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.6277,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 1,
+          "score": 0.6102,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 3,
+          "score": 0.5843,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 1,
+          "score": 0.5838,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "question": "At what pressure are the heat exchanger tubes hydroblasted?",
+      "expected_doc": "SOP-HX-505.pdf",
+      "expected_page": 2,
+      "type": "lexical",
+      "rank": 2,
+      "ms": 31.94,
+      "top": [
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 3,
+          "score": 0.7249,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 2,
+          "score": 0.7227,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 1,
+          "score": 0.6879,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.6306,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 1,
+          "score": 0.6165,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "question": "What is the hydrostatic test pressure after reassembly?",
+      "expected_doc": "SOP-HX-505.pdf",
+      "expected_page": 3,
+      "type": "lexical",
+      "rank": 1,
+      "ms": 33.95,
+      "top": [
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 3,
+          "score": 0.7603,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.6417,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 2,
+          "score": 0.6324,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.5917,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.5849,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "question": "The pump is shaking badly - at what level do we have to shut it off?",
+      "expected_doc": "SOP-PUMP-402.pdf",
+      "expected_page": 2,
+      "type": "paraphrase",
+      "rank": 3,
+      "ms": 39.39,
+      "top": [
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.6883,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 1,
+          "score": 0.68,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 2,
+          "score": 0.6627,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 2,
+          "score": 0.6468,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 2,
+          "score": 0.6444,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "question": "Which oil grade goes into the pump's bearing boxes?",
+      "expected_doc": "SOP-PUMP-402.pdf",
+      "expected_page": 1,
+      "type": "paraphrase",
+      "rank": 1,
+      "ms": 30.41,
+      "top": [
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 1,
+          "score": 0.7463,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.6771,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 1,
+          "score": 0.6721,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 2,
+          "score": 0.6676,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 2,
+          "score": 0.6347,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "question": "What repairs did the crew suggest after looking over the feed pump in August?",
+      "expected_doc": "pump_inspection.pdf",
+      "expected_page": 1,
+      "type": "paraphrase",
+      "rank": 2,
+      "ms": 32.6,
+      "top": [
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 1,
+          "score": 0.6443,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.637,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.6076,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 3,
+          "score": 0.6035,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 3,
+          "score": 0.5814,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "question": "How do I bring the air machine online safely after it has been off?",
+      "expected_doc": "SOP-COMP-210.pdf",
+      "expected_page": 1,
+      "type": "paraphrase",
+      "rank": 2,
+      "ms": 33.08,
+      "top": [
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 2,
+          "score": 0.6604,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.6586,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.6491,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.6299,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 1,
+          "score": 0.6293,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "question": "When should the intake screen on the air machine be swapped out?",
+      "expected_doc": "SOP-COMP-210.pdf",
+      "expected_page": 2,
+      "type": "paraphrase",
+      "rank": null,
+      "ms": 32.1,
+      "top": [
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.6552,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.6504,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 3,
+          "score": 0.6416,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 3,
+          "score": 0.6377,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.6356,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "question": "How frequently should we check the belt for slack?",
+      "expected_doc": "SOP-COMP-210.pdf",
+      "expected_page": 3,
+      "type": "paraphrase",
+      "rank": 1,
+      "ms": 29.02,
+      "top": [
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 3,
+          "score": 0.6513,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.6076,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 3,
+          "score": 0.6021,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.5956,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 3,
+          "score": 0.5876,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "question": "Is a blowtorch okay for warming a bearing up before fitting it?",
+      "expected_doc": "MAN-BRG-115.pdf",
+      "expected_page": 1,
+      "type": "paraphrase",
+      "rank": 1,
+      "ms": 34.04,
+      "top": [
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 1,
+          "score": 0.7236,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.6653,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 1,
+          "score": 0.6613,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 3,
+          "score": 0.6327,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 2,
+          "score": 0.6299,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "question": "What goes wrong if you pack too much lubricant into a bearing?",
+      "expected_doc": "MAN-BRG-115.pdf",
+      "expected_page": 2,
+      "type": "paraphrase",
+      "rank": 1,
+      "ms": 35.86,
+      "top": [
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 2,
+          "score": 0.74,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 1,
+          "score": 0.698,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 3,
+          "score": 0.6914,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 3,
+          "score": 0.6708,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 1,
+          "score": 0.6612,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "question": "What do small dents pressed into the race tell me about what happened?",
+      "expected_doc": "MAN-BRG-115.pdf",
+      "expected_page": 3,
+      "type": "paraphrase",
+      "rank": 1,
+      "ms": 32.27,
+      "top": [
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 3,
+          "score": 0.6474,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 1,
+          "score": 0.5927,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 1,
+          "score": 0.5789,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 3,
+          "score": 0.5685,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.5511,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "question": "How do I cut off every power source on a machine before working on it?",
+      "expected_doc": "SOP-LOTO-001.pdf",
+      "expected_page": 2,
+      "type": "paraphrase",
+      "rank": 1,
+      "ms": 33.98,
+      "top": [
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 2,
+          "score": 0.7215,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 1,
+          "score": 0.6233,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.6139,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 1,
+          "score": 0.612,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.6068,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "question": "A colleague went home and left their padlock on - who is allowed to take it off?",
+      "expected_doc": "SOP-LOTO-001.pdf",
+      "expected_page": 3,
+      "type": "paraphrase",
+      "rank": 1,
+      "ms": 36.65,
+      "top": [
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 3,
+          "score": 0.6802,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 1,
+          "score": 0.6448,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 1,
+          "score": 0.5911,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 1,
+          "score": 0.547,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 3,
+          "score": 0.5349,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "question": "Who needs to be told before the safety locks go on?",
+      "expected_doc": "SOP-LOTO-001.pdf",
+      "expected_page": 1,
+      "type": "paraphrase",
+      "rank": 2,
+      "ms": 33.02,
+      "top": [
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 3,
+          "score": 0.6804,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 1,
+          "score": 0.6455,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 1,
+          "score": 0.619,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.5799,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.5676,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "question": "Can the fan drive keep running after this checkup, or must it come out?",
+      "expected_doc": "RPT-MTR-330.pdf",
+      "expected_page": 3,
+      "type": "paraphrase",
+      "rank": 1,
+      "ms": 35.18,
+      "top": [
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.7113,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 3,
+          "score": 0.6437,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.6364,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 3,
+          "score": 0.6181,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 2,
+          "score": 0.6115,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "question": "How much electricity is the motor pulling compared with its rating?",
+      "expected_doc": "RPT-MTR-330.pdf",
+      "expected_page": 1,
+      "type": "paraphrase",
+      "rank": 1,
+      "ms": 30.67,
+      "top": [
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 1,
+          "score": 0.7198,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 2,
+          "score": 0.642,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.6304,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.6062,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 2,
+          "score": 0.5982,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "question": "How can we tell the tube bundle is dirty enough to need washing?",
+      "expected_doc": "SOP-HX-505.pdf",
+      "expected_page": 1,
+      "type": "paraphrase",
+      "rank": 2,
+      "ms": 31.97,
+      "top": [
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 2,
+          "score": 0.711,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 1,
+          "score": 0.6447,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 1,
+          "score": 0.6351,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 3,
+          "score": 0.6237,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 3,
+          "score": 0.6164,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "question": "SOP-PUMP-402-REV3",
+      "expected_doc": "SOP-PUMP-402.pdf",
+      "expected_page": 1,
+      "type": "exact",
+      "rank": 1,
+      "ms": 27.76,
+      "top": [
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 1,
+          "score": 0.7057,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.619,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.6158,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 1,
+          "score": 0.5912,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 2,
+          "score": 0.5786,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "question": "What does 5.0 mm/s mean for the pump?",
+      "expected_doc": "SOP-PUMP-402.pdf",
+      "expected_page": 2,
+      "type": "exact",
+      "rank": 3,
+      "ms": 30.31,
+      "top": [
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.6688,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.6263,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 2,
+          "score": 0.6245,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 1,
+          "score": 0.6113,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 1,
+          "score": 0.6082,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "question": "Where was 3.8 mm/s RMS recorded?",
+      "expected_doc": "pump_inspection.pdf",
+      "expected_page": 1,
+      "type": "exact",
+      "rank": 2,
+      "ms": 29.8,
+      "top": [
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 2,
+          "score": 0.6422,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.6145,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 1,
+          "score": 0.6106,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 2,
+          "score": 0.5847,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 2,
+          "score": 0.5361,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "question": "What is the 7.1 mm/s limit for?",
+      "expected_doc": "SOP-COMP-210.pdf",
+      "expected_page": 2,
+      "type": "exact",
+      "rank": 3,
+      "ms": 29.55,
+      "top": [
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 2,
+          "score": 0.6818,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.666,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 2,
+          "score": 0.6179,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.5975,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 3,
+          "score": 0.5822,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 35,
+      "question": "When is valve V-211 opened?",
+      "expected_doc": "SOP-COMP-210.pdf",
+      "expected_page": 1,
+      "type": "exact",
+      "rank": 1,
+      "ms": 26.78,
+      "top": [
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.5877,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.5464,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 1,
+          "score": 0.5269,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.5239,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 1,
+          "score": 0.5058,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 36,
+      "question": "Where is ISO VG 46 used?",
+      "expected_doc": "SOP-COMP-210.pdf",
+      "expected_page": 3,
+      "type": "exact",
+      "rank": null,
+      "ms": 25.84,
+      "top": [
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 1,
+          "score": 0.5785,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 1,
+          "score": 0.5719,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 1,
+          "score": 0.5616,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.5605,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 1,
+          "score": 0.5551,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "question": "What is NLGI 2 used for?",
+      "expected_doc": "MAN-BRG-115.pdf",
+      "expected_page": 2,
+      "type": "exact",
+      "rank": 1,
+      "ms": 26.08,
+      "top": [
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 2,
+          "score": 0.5667,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 1,
+          "score": 0.5535,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.5316,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 1,
+          "score": 0.4977,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 3,
+          "score": 0.4778,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "question": "What happens above 4 gE?",
+      "expected_doc": "MAN-BRG-115.pdf",
+      "expected_page": 3,
+      "type": "exact",
+      "rank": 1,
+      "ms": 24.29,
+      "top": [
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 3,
+          "score": 0.6579,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 2,
+          "score": 0.6008,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 3,
+          "score": 0.5854,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.5678,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 1,
+          "score": 0.5659,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 39,
+      "question": "What is recorded on log sheet CL-210?",
+      "expected_doc": "SOP-COMP-210.pdf",
+      "expected_page": 3,
+      "type": "exact",
+      "rank": null,
+      "ms": 27.38,
+      "top": [
+        {
+          "doc_name": "SOP-COMP-210.pdf",
+          "page_number": 1,
+          "score": 0.6103,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 1,
+          "score": 0.5989,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "SOP-LOTO-001.pdf",
+          "page_number": 1,
+          "score": 0.5571,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "SOP-HX-505.pdf",
+          "page_number": 1,
+          "score": 0.5461,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 1,
+          "score": 0.5439,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "question": "What gets torqued to 450 Nm?",
+      "expected_doc": "SOP-HX-505.pdf",
+      "expected_page": 3,
+      "type": "exact",
+      "rank": null,
+      "ms": 23.89,
+      "top": [
+        {
+          "doc_name": "pump_inspection.pdf",
+          "page_number": 1,
+          "score": 0.6232,
+          "bm25_rank": null,
+          "vector_rank": 1
+        },
+        {
+          "doc_name": "SOP-PUMP-402.pdf",
+          "page_number": 2,
+          "score": 0.6208,
+          "bm25_rank": null,
+          "vector_rank": 2
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 2,
+          "score": 0.605,
+          "bm25_rank": null,
+          "vector_rank": 3
+        },
+        {
+          "doc_name": "RPT-MTR-330.pdf",
+          "page_number": 3,
+          "score": 0.6042,
+          "bm25_rank": null,
+          "vector_rank": 4
+        },
+        {
+          "doc_name": "MAN-BRG-115.pdf",
+          "page_number": 2,
+          "score": 0.6028,
+          "bm25_rank": null,
+          "vector_rank": 5
+        }
+      ]
+    }
+  ]
+}

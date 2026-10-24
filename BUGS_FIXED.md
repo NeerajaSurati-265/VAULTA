@@ -31,6 +31,6 @@
 | ID | Description | Status | Files changed |
 |----|-------------|--------|---------------|
 | U1 | Retrieval eval: 5 synthetic docs (reproducible script), 40-question eval set (15 lexical / 15 paraphrase / 10 exact), `eval/run_eval.py`, hashing baseline (hit@3 55%) | Done | `scripts/make_sample_docs.py`, `data/documents/*.pdf` (5 new), `eval/questions.jsonl`, `eval/run_eval.py`, `eval/results/hashing.json`, `app/main_services/rag_service.py` (`retrieval_mode` param) |
-| U2 | Local semantic embeddings via Ollama `/api/embed` (`nomic-embed-text`) | Open | |
+| U2 | Local semantic embeddings via Ollama `/api/embed` (`nomic-embed-text`, task prefixes, batching, dimension from model, re-embed on model change). Eval hit@3 55% → 90% | Done | `app/config.py`, `app/main_services/ollama_service.py` (`embed_texts`, shared `_post_ollama`), `app/main_services/rag_service.py` (embedders, metadata), `run.sh`, `README.md`, `eval/run_eval.py`, `eval/results/semantic.json` |
 | U3 | BM25 + hybrid retrieval (Reciprocal Rank Fusion) | Open | |
 | U4 | Retrieval provenance in UI/trace/status, README docs, tests | Open | |

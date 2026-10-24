@@ -14,6 +14,13 @@ OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
 MODEL = os.getenv("VAULTA_MODEL", "qwen2.5:3b")
 OLLAMA_TIMEOUT = float(os.getenv("OLLAMA_TIMEOUT", "300"))
 
+# Knowledge-base retrieval
+#   hashing  - hashed word/bigram vectors (no model needed, original method)
+#   semantic - local embedding model via Ollama (EMBED_MODEL)
+RETRIEVAL_MODE = os.getenv("VAULTA_RETRIEVAL_MODE", "hashing").lower()
+EMBED_MODEL = os.getenv("VAULTA_EMBED_MODEL", "nomic-embed-text")
+EMBED_BATCH_SIZE = int(os.getenv("VAULTA_EMBED_BATCH", "32"))
+
 # FastAPI backend, as seen from the Streamlit UI
 BACKEND_URL = os.getenv("VAULTA_BACKEND_URL", "http://127.0.0.1:8000").rstrip("/")
 # How long the UI waits for the backend. /agent/run can make two Ollama calls
