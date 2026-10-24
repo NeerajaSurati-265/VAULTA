@@ -2,7 +2,7 @@ import os
 import streamlit as st
 import requests
 from app.main_services.report_generator import generate_approval_note
-from app.config import BACKEND_URL, OLLAMA_URL, MODEL, DOCUMENTS_DIR, SPREADSHEETS_DIR
+from app.config import BACKEND_URL, OLLAMA_URL, MODEL, DOCUMENTS_DIR, SPREADSHEETS_DIR, UI_REQUEST_TIMEOUT
 
 
 # -------------------------------------------------------------------
@@ -69,6 +69,33 @@ st.markdown(
 # -------------------------------------------------------------------
 
 backend_url = BACKEND_URL
+
+
+class BackendError(Exception):
+    """A backend request failed; the message is meant to be shown to the user."""
+
+
+def post_backend(path, **kwargs):
+    """POST to the backend and return its JSON, turning failures into readable messages."""
+    try:
+        resp = requests.post(f"{backend_url}{path}", timeout=UI_REQUEST_TIMEOUT, **kwargs)
+    except requests.exceptions.Timeout:
+        raise BackendError(
+            f"The backend did not answer within {UI_REQUEST_TIMEOUT:g} seconds. The local model may "
+            "still be busy; try again, or raise OLLAMA_TIMEOUT / VAULTA_UI_REQUEST_TIMEOUT."
+        ) from None
+    except requests.exceptions.ConnectionError:
+        raise BackendError(f"Cannot reach the VAULTA backend at {backend_url}; start it with ./run.sh.") from None
+    if not resp.ok:
+        # The backend sends {"error": ...} (Ollama problems) or {"detail": ...} (HTTPException)
+        try:
+            body = resp.json()
+            msg = body.get("error") or body.get("detail") or resp.text
+        except ValueError:
+            msg = resp.text
+        raise BackendError(f"Backend returned HTTP {resp.status_code}: {msg}")
+    return resp.json()
+
 health_data = {"status": "offline", "ollama": "disconnected", "models": [MODEL]}
 kb_data = {"documents_count": 0, "total_chunks": 0, "status": "unavailable"}
 
@@ -89,8 +116,7 @@ except Exception:
 status_col1, status_col2, status_col3, status_col4, status_col5 = st.columns(5)
 
 with status_col1:
-    model_name = health_data.get("models", [MODEL])[0] if health_data.get("models") else MODEL
-    st.metric("LOCAL AI RUNTIME", model_name, "Ollama Localhost")
+    st.metric("LOCAL AI RUNTIME", MODEL, "Ollama Localhost")
 
 with status_col2:
     st.metric("PROCESSING", "ON-PREMISE", "Air-Gapped")
@@ -106,6 +132,10 @@ with status_col5:
     chk_cnt = kb_data.get("total_chunks", 0)
     kb_state = f"READY ({doc_cnt} docs, {chk_cnt} chunks)" if doc_cnt > 0 else "READY (0 docs)"
     st.metric("KNOWLEDGE BASE", kb_state, "FAISS IndexFlatIP")
+
+# Ollama lists untagged models as "<name>:latest"
+if health_data.get("ollama") == "connected" and not {MODEL, f"{MODEL}:latest"} & set(health_data.get("models", [])):
+    st.warning(f"Model `{MODEL}` is not available in Ollama. Run `ollama pull {MODEL}`.")
 
 st.divider()
 
@@ -192,14 +222,11 @@ with tab_inv:
                     with open(demo_sop_path, "rb") as f:
                         files_payload["sop_file"] = ("SOP-PUMP-402.pdf", f.read(), "application/pdf")
 
-                inv_response = requests.post(
-                    f"{backend_url}/investigate",
+                inv_res = post_backend(
+                    "/investigate",
                     data={"prompt": inv_prompt},
                     files=files_payload if files_payload else None,
-                    timeout=300,
                 )
-                inv_response.raise_for_status()
-                inv_res = inv_response.json()
 
                 st.success("Unified investigation completed successfully with zero cloud transmission!")
 
@@ -318,14 +345,11 @@ with tab_doc:
         else:
             with st.spinner("Extracting and analyzing document locally..."):
                 try:
-                    response = requests.post(
-                        f"{backend_url}/agent/run",
+                    result = post_backend(
+                        "/agent/run",
                         files={"file": (doc_upload.name, doc_upload.getvalue(), "application/pdf")},
                         data={"prompt": doc_question},
-                        timeout=240,
                     )
-                    response.raise_for_status()
-                    result = response.json()
 
                     st.success("Document analyzed locally")
 
@@ -411,14 +435,11 @@ with tab_data:
             with st.spinner("Processing dataset deterministically with Pandas..."):
                 try:
                     mime = "text/csv" if data_file.name.endswith(".csv") else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    response = requests.post(
-                        f"{backend_url}/agent/run",
+                    result = post_backend(
+                        "/agent/run",
                         files={"file": (data_file.name, data_file.getvalue(), mime)},
                         data={"prompt": data_question},
-                        timeout=240,
                     )
-                    response.raise_for_status()
-                    result = response.json()
 
                     st.success("Dataset analyzed locally")
 
@@ -520,14 +541,15 @@ with tab_kb:
             else:
                 with st.spinner("Indexing document into FAISS vector store..."):
                     try:
-                        ingest_res = requests.post(
-                            f"{backend_url}/knowledge/ingest",
+                        ingest_info = post_backend(
+                            "/knowledge/ingest",
                             files={"file": (kb_upload.name, kb_upload.getvalue(), "application/pdf")},
-                            timeout=120,
                         )
-                        ingest_res.raise_for_status()
-                        ingest_info = ingest_res.json()
-                        st.success(f"Indexed '{ingest_info.get('filename')}' ({ingest_info.get('chunks_added')} chunks added).")
+                        if ingest_info.get("status") == "already_indexed":
+                            st.info(f"'{ingest_info.get('filename')}' is already indexed with the same content; nothing changed.")
+                        else:
+                            verb = "Replaced" if ingest_info.get("status") == "replaced" else "Indexed"
+                            st.success(f"{verb} '{ingest_info.get('filename')}' ({ingest_info.get('chunks_added')} chunks added).")
                         st.rerun()
                     except Exception as e:
                         st.error(f"Failed to index document: {e}")
@@ -544,13 +566,10 @@ with tab_kb:
         else:
             with st.spinner("Searching FAISS vector index and synthesizing grounded answer..."):
                 try:
-                    response = requests.post(
-                        f"{backend_url}/agent/run",
+                    result = post_backend(
+                        "/agent/run",
                         data={"prompt": f"Search the knowledge base and SOPs: {kb_query}"},
-                        timeout=240,
                     )
-                    response.raise_for_status()
-                    result = response.json()
 
                     st.success("Knowledge retrieval complete")
 
@@ -636,9 +655,7 @@ with tab_chat:
         else:
             with st.spinner("Processing on local model..."):
                 try:
-                    response = requests.post(f"{backend_url}/chat", json={"prompt": chat_prompt}, timeout=180)
-                    response.raise_for_status()
-                    result = response.json()
+                    result = post_backend("/chat", json={"prompt": chat_prompt})
 
                     st.success("Response generated locally")
                     st.write(result.get("response", ""))

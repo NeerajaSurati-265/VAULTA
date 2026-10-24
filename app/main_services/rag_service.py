@@ -1,5 +1,6 @@
 import os
 import json
+import hashlib
 import logging
 import threading
 from pathlib import Path
@@ -41,7 +42,8 @@ class LocalKnowledgeBase:
         )
         self.index = faiss.IndexFlatIP(dimension)
         self.chunks: List[Dict[str, Any]] = []
-        self.indexed_files: Dict[str, int] = {}  # filename -> chunk count
+        # filename -> {"chunks": count, "sha256": hash of the PDF bytes}
+        self.indexed_files: Dict[str, Dict[str, Any]] = {}
         # FastAPI may run requests in parallel threads; index, chunks and
         # indexed_files must always change together.
         self._lock = threading.Lock()
@@ -74,7 +76,11 @@ class LocalKnowledgeBase:
 
         self.index = index
         self.chunks = chunks
-        self.indexed_files = indexed_files
+        # Older saves stored just the chunk count; hash unknown -> treated as unchanged
+        self.indexed_files = {
+            name: info if isinstance(info, dict) else {"chunks": info, "sha256": None}
+            for name, info in indexed_files.items()
+        }
         logger.info(
             "Loaded knowledge base from %s: %d documents, %d chunks",
             self.index_dir, len(self.indexed_files), len(self.chunks),
@@ -155,7 +161,8 @@ class LocalKnowledgeBase:
         for p in pieces:
             # +2 for the "\n\n" separator added when joining
             if not current_chunk or len(current_chunk) + 2 + len(p) <= chunk_size:
-                current_chunk = f"{current_chunk}\n\n{p}".strip()
+                # no .strip() here: it would trim the edges of windows and break the overlap
+                current_chunk = f"{current_chunk}\n\n{p}" if current_chunk else p
             else:
                 chunks.append({
                     "doc_name": doc_name,
@@ -180,7 +187,8 @@ class LocalKnowledgeBase:
         if not file_bytes:
             raise ValueError(f"File {filename} is empty.")
 
-        if filename in self.indexed_files:
+        sha256 = hashlib.sha256(file_bytes).hexdigest()
+        if self._is_unchanged(filename, sha256):
             return self._already_indexed(filename)
 
         doc = fitz.open(stream=file_bytes, filetype="pdf")
@@ -214,8 +222,13 @@ class LocalKnowledgeBase:
 
         with self._lock:
             # Re-check: another thread may have ingested the same file meanwhile
-            if filename in self.indexed_files:
+            if self._is_unchanged(filename, sha256):
                 return self._already_indexed(filename)
+
+            # Same filename, different content: the new version replaces the old one
+            replaced = filename in self.indexed_files
+            if replaced:
+                self._remove_file_locked(filename)
 
             start_idx = len(self.chunks)
             for i, c in enumerate(new_chunks):
@@ -223,19 +236,37 @@ class LocalKnowledgeBase:
 
             self.index.add(embeddings)
             self.chunks.extend(new_chunks)
-            self.indexed_files[filename] = len(new_chunks)
+            self.indexed_files[filename] = {"chunks": len(new_chunks), "sha256": sha256}
             self._save_to_disk()
             total_chunks = len(self.chunks)
 
-        logger.info("Ingested %s: pages=%d chunks=%d", filename, total_pages, len(new_chunks))
+        logger.info(
+            "%s %s: pages=%d chunks=%d",
+            "Replaced" if replaced else "Ingested", filename, total_pages, len(new_chunks),
+        )
 
         return {
             "filename": filename,
             "pages": total_pages,
             "chunks_added": len(new_chunks),
             "total_chunks": total_chunks,
-            "status": "completed",
+            "status": "replaced" if replaced else "completed",
         }
+
+    def _is_unchanged(self, filename: str, sha256: str) -> bool:
+        info = self.indexed_files.get(filename)
+        return info is not None and info.get("sha256") in (sha256, None)
+
+    def _remove_file_locked(self, filename: str):
+        """Drops a file's vectors and chunks. Caller must hold self._lock."""
+        ids = [i for i, c in enumerate(self.chunks) if c["doc_name"] == filename]
+        # IndexFlat.remove_ids shifts the remaining vectors down but keeps their
+        # order, so filtering self.chunks the same way keeps vector i == chunk i.
+        self.index.remove_ids(np.array(ids, dtype="int64"))
+        self.chunks = [c for c in self.chunks if c["doc_name"] != filename]
+        for i, c in enumerate(self.chunks):
+            c["chunk_id"] = i
+        del self.indexed_files[filename]
 
     def _already_indexed(self, filename: str) -> Dict[str, Any]:
         return {

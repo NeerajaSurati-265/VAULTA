@@ -3,6 +3,7 @@ from typing import Optional, Dict, Any, List
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import Response, JSONResponse
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 
 from app.config import LOG_LEVEL
 
@@ -124,6 +125,10 @@ def chat(request: ChatRequest):
         "external_calls": 0,
     }
 
+# Several endpoints are `async` (they await file uploads), so any slow blocking
+# call (Ollama, PDF parsing, indexing) goes through run_in_threadpool. Calling it
+# directly would freeze the event loop and every other request, /health included.
+
 @app.post("/analyze-pdf")
 async def analyze_pdf(
     file: UploadFile = File(...),
@@ -137,7 +142,7 @@ async def analyze_pdf(
 
     file_bytes = await file.read()
 
-    result = extract_text_from_pdf(file_bytes)
+    result = await run_in_threadpool(extract_text_from_pdf, file_bytes)
 
     if not result["text"].strip():
         return {
@@ -156,7 +161,7 @@ async def analyze_pdf(
         question,
     )
 
-    answer = ask_local_ai(prompt)
+    answer = await run_in_threadpool(ask_local_ai, prompt)
 
     return {
         "filename": file.filename,
@@ -182,7 +187,7 @@ async def ingest_knowledge_document(file: UploadFile = File(...)):
             detail="Only PDF documents are supported for knowledge base ingestion."
         )
     file_bytes = await file.read()
-    res = knowledge_base.ingest_pdf(file_bytes, file.filename)
+    res = await run_in_threadpool(knowledge_base.ingest_pdf, file_bytes, file.filename)
     return res
 
 
@@ -230,7 +235,8 @@ async def investigate_task(
     s_bytes = await sop_file.read() if sop_file else None
     s_name = sop_file.filename if sop_file else None
 
-    result = run_unified_investigation(
+    result = await run_in_threadpool(
+        run_unified_investigation,
         task_prompt=prompt,
         inspection_file_bytes=insp_bytes,
         inspection_filename=insp_name,
@@ -278,7 +284,7 @@ async def agent_run(
         })
 
     # 2. TASK_ROUTING
-    routing_result = TaskRouter.route(prompt=prompt, filename=filename, file_type=file_type)
+    routing_result = await run_in_threadpool(TaskRouter.route, prompt=prompt, filename=filename, file_type=file_type)
     route = routing_result.get("route", GENERAL_AI)
     confidence = routing_result.get("confidence", 1.0)
     reason = routing_result.get("reason", "")
@@ -322,7 +328,7 @@ async def agent_run(
         if route == DOC_ANALYST:
             if file and filename and filename.lower().endswith(".pdf"):
                 file_bytes = await file.read()
-                pdf_result = extract_text_from_pdf(file_bytes)
+                pdf_result = await run_in_threadpool(extract_text_from_pdf, file_bytes)
                 pages = pdf_result.get("pages", 0)
                 document_text = pdf_result.get("text", "")
 
@@ -361,12 +367,12 @@ async def agent_run(
                     })
 
                     doc_prompt = build_document_prompt(document_text[:30000], prompt)
-                    response_text = ask_local_ai(doc_prompt)
+                    response_text = await run_in_threadpool(ask_local_ai, doc_prompt)
 
             elif file and filename:
                 response_text = f"Document analysis currently supports PDF files. Received: {filename}"
             else:
-                response_text = ask_local_ai(prompt)
+                response_text = await run_in_threadpool(ask_local_ai, prompt)
 
         elif route == DATA_ANALYST:
             if file and filename:
@@ -423,7 +429,7 @@ async def agent_run(
                     },
                 })
 
-                response_text = ask_local_ai(data_prompt)
+                response_text = await run_in_threadpool(ask_local_ai, data_prompt)
 
             else:
                 response_text = "DATA_ANALYST route selected, but no dataset file (CSV/XLSX) was provided."
@@ -432,7 +438,7 @@ async def agent_run(
             # If user uploaded a new PDF along with their query, ingest it
             if file and filename and filename.lower().endswith(".pdf"):
                 file_bytes = await file.read()
-                knowledge_base.ingest_pdf(file_bytes, filename)
+                await run_in_threadpool(knowledge_base.ingest_pdf, file_bytes, filename)
                 execution_trace.append({
                     "stage": "DOCUMENT_INGESTION",
                     "status": "completed",
@@ -444,7 +450,7 @@ async def agent_run(
                 })
 
             # query() retrieves and synthesizes in one pass; reuse its chunks for the trace
-            kb_res = knowledge_base.query(prompt, top_k=3)
+            kb_res = await run_in_threadpool(knowledge_base.query, prompt, top_k=3)
             response_text = kb_res.get("response", "")
             retrieved = kb_res.get("retrieved_chunks", [])
             retrieved_chunks = retrieved
@@ -472,7 +478,7 @@ async def agent_run(
             })
 
         else:
-            response_text = ask_local_ai(prompt)
+            response_text = await run_in_threadpool(ask_local_ai, prompt)
 
         # VERIFICATION
         verification_result = verify_output(
