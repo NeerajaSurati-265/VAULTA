@@ -251,7 +251,8 @@ Provide your Root-Cause Analysis, Evidence Correlation, and Corrective Action Pl
         "statistics": statistics,
         "calculated_results": calculated_results,
         "retrieved_chunks": retrieved_chunks,
-        "docx_bytes": docx_bytes,
+        # Raw DOCX bytes are deliberately NOT returned: FastAPI cannot JSON-encode
+        # binary data (500 error). The UI builds its own DOCX via generate_approval_note.
         "model": MODEL,
         "local": True,
         "external_calls": 0,

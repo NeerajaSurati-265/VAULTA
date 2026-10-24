@@ -19,16 +19,18 @@ def extract_text_from_pdf(file_bytes: bytes) -> dict:
 
     pages = []
 
-    for page_number, page in enumerate(document, start=1):
-        text = page.get_text().strip()
+    try:
+        for page_number, page in enumerate(document, start=1):
+            text = page.get_text().strip()
 
-        if text:
-            pages.append(
-                f"[Page {page_number}]\n{text}"
-            )
+            if text:
+                pages.append(
+                    f"[Page {page_number}]\n{text}"
+                )
 
-    total_pages = len(document)
-    document.close()
+        total_pages = len(document)
+    finally:
+        document.close()
 
     return {
         "pages": total_pages,

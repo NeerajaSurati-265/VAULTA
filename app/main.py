@@ -1,10 +1,22 @@
+import logging
 from typing import Optional, Dict, Any, List
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
-from fastapi.responses import Response
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
+from fastapi.responses import Response, JSONResponse
 from pydantic import BaseModel
+
+from app.config import LOG_LEVEL
+
+# Configure logging before importing the services: the knowledge base is built
+# (and logs its ingests) at import time.
+logging.basicConfig(
+    level=LOG_LEVEL,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+logger = logging.getLogger("vaulta")
 
 from app.main_services.ollama_service import (
     MODEL,
+    OllamaError,
     get_models,
     ask_local_ai,
 )
@@ -35,6 +47,13 @@ from app.agents import (
 )
 
 app = FastAPI(title="VAULTA", version="0.2.0")
+
+
+@app.exception_handler(OllamaError)
+async def ollama_error_handler(request: Request, exc: OllamaError):
+    # 503 = a dependency (Ollama) is unavailable; the message says how to fix it
+    logger.error("Ollama error on %s: %s", request.url.path, exc)
+    return JSONResponse(status_code=503, content={"error": str(exc)})
 
 
 class ChatRequest(BaseModel):
@@ -264,6 +283,19 @@ async def agent_run(
     confidence = routing_result.get("confidence", 1.0)
     reason = routing_result.get("reason", "")
 
+    # The LLM router only sees the filename as text and can pick an agent that
+    # cannot handle the attached file, so the file extension has the final say.
+    if filename:
+        low = filename.lower()
+        corrected_route = None
+        if low.endswith((".csv", ".xlsx", ".xls")) and route != DATA_ANALYST:
+            corrected_route = DATA_ANALYST
+        elif low.endswith(".pdf") and route not in (DOC_ANALYST, KNOWLEDGE_ANALYST):
+            corrected_route = DOC_ANALYST
+        if corrected_route:
+            reason = f"{reason} [Route corrected from {route} to {corrected_route} based on the attached file type.]".strip()
+            route = corrected_route
+
     execution_trace.append({
         "stage": "TASK_ROUTING",
         "status": "completed",
@@ -411,7 +443,10 @@ async def agent_run(
                     },
                 })
 
-            retrieved = knowledge_base.retrieve(prompt, top_k=3)
+            # query() retrieves and synthesizes in one pass; reuse its chunks for the trace
+            kb_res = knowledge_base.query(prompt, top_k=3)
+            response_text = kb_res.get("response", "")
+            retrieved = kb_res.get("retrieved_chunks", [])
             retrieved_chunks = retrieved
 
             execution_trace.append({
@@ -425,9 +460,6 @@ async def agent_run(
                     "status": "completed",
                 },
             })
-
-            kb_res = knowledge_base.query(prompt, top_k=3)
-            response_text = kb_res.get("response", "")
 
             execution_trace.append({
                 "stage": "KNOWLEDGE_SYNTHESIS",

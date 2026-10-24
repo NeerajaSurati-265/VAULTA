@@ -4,3 +4,4 @@ __pycache__/
 .env
 *.index
 *.faiss
+data/index/
