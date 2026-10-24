@@ -18,9 +18,10 @@
 | B8 | `/agent/run` KNOWLEDGE_ANALYST retrieves twice | Fixed | `app/main.py` |
 | B9 | Router can pick an agent that doesn't match the attached file type | Fixed | `app/main.py` |
 | B10 | No logging of Ollama calls, retrieval, or ingestion | Fixed | `app/main.py`, `app/main_services/ollama_service.py`, `app/main_services/rag_service.py` |
-| C1 | No automated tests | Open | |
-| D1 | UI HTTP timeouts (180–300 s) are shorter than the worst case backend time: `/agent/run` makes 2 Ollama calls of up to `OLLAMA_TIMEOUT` (300 s) each, so the UI can give up while the backend is still working | Open | |
-| D2 | UI status bar shows the *first* model Ollama lists, not the configured `VAULTA_MODEL` | Open | |
-| D3 | `/investigate`, `/agent/run`, `/analyze-pdf` and `/knowledge/ingest` are `async def` but do blocking work (Ollama calls take ~60 s), so they block the event loop: while one investigation runs, every other request (including `/health` and the UI status bar) hangs | Open | |
-| D4 | UI uses `raise_for_status()`, so a backend 503 shows as `503 Server Error: Service Unavailable for url ...` instead of the backend's helpful `{"error": ...}` message | Open | |
-| D5 | Because of B4 (skip by filename), uploading an *updated* PDF with the same filename is silently skipped, and there is no way to remove or replace a document; the UI also reports it as "Indexed (0 chunks added)" | Open | |
+| C1 | No automated tests | Fixed | `tests/` (new), `pytest.ini` (new), `requirements-dev.txt` (+`httpx`), `app/config.py` (`VAULTA_INDEX_DIR`) |
+| D1 | UI HTTP timeouts (180–300 s) are shorter than the worst case backend time: `/agent/run` makes 2 Ollama calls of up to `OLLAMA_TIMEOUT` (300 s) each, so the UI can give up while the backend is still working | Fixed | `app/config.py` (`UI_REQUEST_TIMEOUT`), `app/ui.py` (`post_backend` helper) |
+| D2 | UI status bar shows the *first* model Ollama lists, not the configured `VAULTA_MODEL` | Fixed | `app/ui.py` |
+| D3 | `/investigate`, `/agent/run`, `/analyze-pdf` and `/knowledge/ingest` are `async def` but do blocking work (Ollama calls take ~60 s), so they block the event loop: while one investigation runs, every other request (including `/health` and the UI status bar) hangs | Fixed | `app/main.py` (`run_in_threadpool`) |
+| D4 | UI uses `raise_for_status()`, so a backend 503 shows as `503 Server Error: Service Unavailable for url ...` instead of the backend's helpful `{"error": ...}` message | Fixed | `app/ui.py` (`post_backend` shows backend `error`/`detail`) |
+| D5 | Because of B4 (skip by filename), uploading an *updated* PDF with the same filename is silently skipped, and there is no way to remove or replace a document; the UI also reports it as "Indexed (0 chunks added)" | Fixed | `app/main_services/rag_service.py` (SHA-256 per file; changed content replaces old chunks), `app/ui.py` |
+| D6 | B7 chunk merge used `.strip()` on the joined text, trimming the edges of overlap windows (found by the new chunking test) | Fixed | `app/main_services/rag_service.py` |

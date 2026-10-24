@@ -1,2 +1,4 @@
 -r requirements.txt
 pytest>=7.0
+# FastAPI TestClient needs httpx
+httpx>=0.25
