@@ -16,10 +16,17 @@ OLLAMA_TIMEOUT = float(os.getenv("OLLAMA_TIMEOUT", "300"))
 
 # Knowledge-base retrieval
 #   hashing  - hashed word/bigram vectors (no model needed, original method)
+#   bm25     - BM25 keyword ranking (no model needed; exact IDs and numbers)
 #   semantic - local embedding model via Ollama (EMBED_MODEL)
-RETRIEVAL_MODE = os.getenv("VAULTA_RETRIEVAL_MODE", "hashing").lower()
+#   hybrid   - bm25 + semantic merged with Reciprocal Rank Fusion
+# Default: hybrid had the best hit@3 (tied with semantic) and the best MRR and
+# hit@5 on eval/questions.jsonl; see README "Evaluation".
+RETRIEVAL_MODE = os.getenv("VAULTA_RETRIEVAL_MODE", "hybrid").lower()
 EMBED_MODEL = os.getenv("VAULTA_EMBED_MODEL", "nomic-embed-text")
 EMBED_BATCH_SIZE = int(os.getenv("VAULTA_EMBED_BATCH", "32"))
+# hybrid: candidates taken from each ranker, and the RRF constant (score = sum 1/(RRF_K + rank))
+HYBRID_CANDIDATES = int(os.getenv("VAULTA_HYBRID_CANDIDATES", "20"))
+RRF_K = int(os.getenv("VAULTA_RRF_K", "60"))
 
 # FastAPI backend, as seen from the Streamlit UI
 BACKEND_URL = os.getenv("VAULTA_BACKEND_URL", "http://127.0.0.1:8000").rstrip("/")

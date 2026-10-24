@@ -8,6 +8,8 @@ import tempfile
 from pathlib import Path
 
 os.environ["VAULTA_INDEX_DIR"] = tempfile.mkdtemp(prefix="vaulta-test-index-")
+# hashing needs no Ollama; tests that cover other modes pass retrieval_mode explicitly
+os.environ["VAULTA_RETRIEVAL_MODE"] = "hashing"
 
 import pytest  # noqa: E402
 

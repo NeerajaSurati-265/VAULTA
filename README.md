@@ -177,7 +177,7 @@ All settings live in `app/config.py` and can be overridden with environment vari
 | `OLLAMA_URL` | `http://127.0.0.1:11434` | Ollama server URL |
 | `VAULTA_MODEL` | `qwen2.5:3b` | Ollama model used for all LLM calls |
 | `OLLAMA_TIMEOUT` | `300` | Seconds to wait for one Ollama response |
-| `VAULTA_RETRIEVAL_MODE` | see `app/config.py` | Knowledge-base search: `hashing`, `bm25`, `semantic` or `hybrid` (see "How retrieval works") |
+| `VAULTA_RETRIEVAL_MODE` | `hybrid` | Knowledge-base search: `hashing`, `bm25`, `semantic` or `hybrid` (see "How retrieval works") |
 | `VAULTA_EMBED_MODEL` | `nomic-embed-text` | Ollama embedding model for `semantic` / `hybrid` |
 | `VAULTA_EMBED_BATCH` | `32` | Texts per embedding request |
 | `VAULTA_BACKEND_URL` | `http://127.0.0.1:8000` | Backend URL used by the UI (and by `run.sh` to pick host/port) |

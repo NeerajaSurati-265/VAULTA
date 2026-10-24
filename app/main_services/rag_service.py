@@ -1,25 +1,55 @@
 import os
+import re
 import json
 import hashlib
 import logging
 import threading
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
 import faiss
 import fitz
+from rank_bm25 import BM25Okapi
 from sklearn.feature_extraction.text import HashingVectorizer
 
-from app.config import DOCUMENTS_DIR, INDEX_DIR, RETRIEVAL_MODE, EMBED_MODEL
+from app.config import DOCUMENTS_DIR, INDEX_DIR, RETRIEVAL_MODE, EMBED_MODEL, HYBRID_CANDIDATES, RRF_K
 from app.main_services.ollama_service import ask_local_ai, embed_texts, MODEL
 
 
 logger = logging.getLogger(__name__)
 
 EMBEDDING_DIM = 1024
-RETRIEVAL_MODES = ("hashing", "semantic")
+RETRIEVAL_MODES = ("hashing", "bm25", "semantic", "hybrid")
 INDEX_FILENAME = "knowledge.faiss"
 META_FILENAME = "knowledge_meta.json"
+
+# A token is a run of letters/digits, optionally joined by ".", "-" or "/", so
+# IDs and numbers like "P-402", "4.5" and "mm/s" stay whole instead of being
+# split into meaningless pieces.
+_TOKEN_RE = re.compile(r"[a-z0-9]+(?:[.\-/][a-z0-9]+)*")
+
+
+def tokenize(text: str) -> List[str]:
+    """Lowercased BM25 tokens. Hyphenated IDs also yield their parts ("p-402" -> "p", "402")."""
+    tokens = []
+    for token in _TOKEN_RE.findall(text.lower()):
+        tokens.append(token)
+        if "-" in token:
+            tokens.extend(part for part in token.split("-") if part)
+    return tokens
+
+
+def rrf_merge(ranked_lists: List[List[int]], k: int = RRF_K) -> List[Tuple[int, float]]:
+    """Reciprocal Rank Fusion: score(item) = sum over lists of 1 / (k + rank), rank from 1.
+
+    Uses only ranks, so BM25 scores and cosine similarities (different scales)
+    can be combined without normalisation. Returns (item, score), best first.
+    """
+    scores: Dict[int, float] = {}
+    for ranked in ranked_lists:
+        for rank, item in enumerate(ranked, start=1):
+            scores[item] = scores.get(item, 0.0) + 1.0 / (k + rank)
+    return sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
 
 
 class HashingEmbedder:
@@ -84,10 +114,15 @@ class LocalKnowledgeBase:
                 f"Unknown retrieval mode {self.retrieval_mode!r}; expected one of {RETRIEVAL_MODES}"
             )
         self.index_dir = Path(index_dir or INDEX_DIR)
+        # bm25 needs no vectors; hybrid pairs BM25 with semantic vectors
         if self.retrieval_mode == "hashing":
             self.embedder = HashingEmbedder(dimension)
-        else:
+        elif self.retrieval_mode in ("semantic", "hybrid"):
             self.embedder = OllamaEmbedder()
+        else:
+            self.embedder = None
+        self.uses_bm25 = self.retrieval_mode in ("bm25", "hybrid")
+        self._bm25: Optional[BM25Okapi] = None
         # Created on the first add: the dimension comes from the embedding model
         self.index: Optional[faiss.Index] = None
         self.chunks: List[Dict[str, Any]] = []
@@ -126,6 +161,14 @@ class LocalKnowledgeBase:
             for name, info in indexed_files.items()
         }
         if not self.chunks:
+            return
+        self._rebuild_bm25_locked()  # BM25 is not saved; it is rebuilt from the chunk texts
+
+        if self.embedder is None:
+            logger.info(
+                "Loaded knowledge base from %s: %d documents, %d chunks (mode=%s)",
+                self.index_dir, len(self.indexed_files), len(self.chunks), self.retrieval_mode,
+            )
             return
 
         # Saves from before retrieval modes existed were always hashing-1024
@@ -168,7 +211,7 @@ class LocalKnowledgeBase:
         meta_path = self.index_dir / META_FILENAME
         meta = {
             "retrieval_mode": self.retrieval_mode,
-            "embed_model": self.embedder.name,
+            "embed_model": self.embedder.name if self.embedder else None,
             "dimension": self.index.d if self.index is not None else None,
             "chunks": self.chunks,
             "indexed_files": self.indexed_files,
@@ -291,7 +334,9 @@ class LocalKnowledgeBase:
             }
 
         # Embed outside the lock: for semantic mode this is a (slow) Ollama call
-        embeddings = self.embedder.embed_documents([c["text"] for c in new_chunks])
+        embeddings = None
+        if self.embedder is not None:
+            embeddings = self.embedder.embed_documents([c["text"] for c in new_chunks])
 
         with self._lock:
             # Re-check: another thread may have ingested the same file meanwhile
@@ -307,10 +352,12 @@ class LocalKnowledgeBase:
             for i, c in enumerate(new_chunks):
                 c["chunk_id"] = start_idx + i
 
-            if self.index is None:
-                self.index = faiss.IndexFlatIP(embeddings.shape[1])
-            self.index.add(embeddings)
+            if embeddings is not None:
+                if self.index is None:
+                    self.index = faiss.IndexFlatIP(embeddings.shape[1])
+                self.index.add(embeddings)
             self.chunks.extend(new_chunks)
+            self._rebuild_bm25_locked()
             self.indexed_files[filename] = {"chunks": len(new_chunks), "sha256": sha256}
             self._save_to_disk()
             total_chunks = len(self.chunks)
@@ -353,40 +400,71 @@ class LocalKnowledgeBase:
             "message": f"{filename} is already in the knowledge base; skipped.",
         }
 
-    def _vector_search(self, query: str, n: int) -> List[Dict[str, Any]]:
-        """Top-n chunks by cosine similarity, as copies with score and vector_rank."""
-        q_vec = self.embedder.embed_query(query)  # outside the lock: may call Ollama
+    def _rebuild_bm25_locked(self):
+        """Rebuilds the BM25 model from all chunk texts. Caller holds the lock (or is __init__)."""
+        if self.uses_bm25:
+            self._bm25 = BM25Okapi([tokenize(c["text"]) for c in self.chunks]) if self.chunks else None
 
-        # Searching while another thread adds vectors is not safe in FAISS
-        with self._lock:
-            if self.index is None or not self.chunks:
-                return []
-            scores, indices = self.index.search(q_vec, min(n, len(self.chunks)))
-            results = []
-            for score, idx in zip(scores[0], indices[0]):
-                if 0 <= idx < len(self.chunks):
-                    chunk = dict(self.chunks[idx])
-                    chunk["score"] = round(float(score), 4)
-                    chunk["vector_rank"] = len(results) + 1
-                    results.append(chunk)
-        return results
+    def _vector_ranking_locked(self, q_vec: np.ndarray, n: int) -> List[Tuple[int, float]]:
+        """(chunk index, cosine similarity) for the top n chunks."""
+        if self.index is None or not self.chunks:
+            return []
+        scores, indices = self.index.search(q_vec, min(n, len(self.chunks)))
+        return [(int(i), float(sc)) for sc, i in zip(scores[0], indices[0]) if 0 <= i < len(self.chunks)]
+
+    def _bm25_ranking_locked(self, query: str, n: int) -> List[Tuple[int, float]]:
+        """(chunk index, BM25 score) for the top n chunks that share at least one term."""
+        if self._bm25 is None:
+            return []
+        scores = self._bm25.get_scores(tokenize(query))
+        order = np.argsort(scores)[::-1][:n]
+        return [(int(i), float(scores[i])) for i in order if scores[i] > 0]
 
     def retrieve(self, query: str, top_k: int = 3) -> List[Dict[str, Any]]:
         """
         Retrieves the top_k most relevant chunks using the configured retrieval mode.
+
+        Every returned chunk carries "score" (cosine, BM25 or RRF depending on the
+        mode) plus "bm25_rank" and "vector_rank" (1-based, or None) to show why it
+        was picked.
         """
         if not query or not query.strip() or len(self.chunks) == 0:
             return []
         query = query.strip()
+        mode = self.retrieval_mode
 
-        results = self._vector_search(query, top_k)
-        for chunk in results:
-            chunk["bm25_rank"] = None
-            chunk["retrieval_mode"] = self.retrieval_mode
+        # Embed outside the lock: in semantic modes this is an Ollama call
+        q_vec = self.embedder.embed_query(query) if self.embedder is not None else None
+
+        # One lock for all rankings so chunk indices cannot shift between them
+        with self._lock:
+            if mode == "bm25":
+                bm25 = self._bm25_ranking_locked(query, top_k)
+                vector: List[Tuple[int, float]] = []
+                picked = bm25
+            elif mode == "hybrid":
+                bm25 = self._bm25_ranking_locked(query, HYBRID_CANDIDATES)
+                vector = self._vector_ranking_locked(q_vec, HYBRID_CANDIDATES)
+                picked = rrf_merge([[i for i, _ in bm25], [i for i, _ in vector]])[:top_k]
+            else:  # hashing / semantic
+                bm25 = []
+                vector = self._vector_ranking_locked(q_vec, top_k)
+                picked = vector
+
+            bm25_rank = {i: r for r, (i, _) in enumerate(bm25, start=1)}
+            vector_rank = {i: r for r, (i, _) in enumerate(vector, start=1)}
+            results = []
+            for idx, score in picked:
+                chunk = dict(self.chunks[idx])
+                chunk["score"] = round(score, 4)
+                chunk["bm25_rank"] = bm25_rank.get(idx)
+                chunk["vector_rank"] = vector_rank.get(idx)
+                chunk["retrieval_mode"] = mode
+                results.append(chunk)
 
         logger.info(
             "Retrieved %d chunks (mode=%s) for query %r: %s",
-            len(results), self.retrieval_mode, query[:200],
+            len(results), mode, query[:200],
             ", ".join(
                 f"{c['doc_name']} p.{c['page_number']} score={c['score']} "
                 f"bm25_rank={c['bm25_rank']} vector_rank={c['vector_rank']}"
@@ -458,8 +536,13 @@ Provide your grounded response:"""
             "index_dimension": self.index.d if self.index is not None else None,
             "faiss_total": self.index.ntotal if self.index is not None else 0,
             "retrieval_mode": self.retrieval_mode,
-            "embed_model": self.embedder.name,
-            "processor": f"FAISS (IndexFlatIP) + {self.embedder.name}",
+            "embed_model": self.embedder.name if self.embedder else None,
+            "processor": {
+                "hashing": "FAISS (IndexFlatIP) + HashingVectorizer",
+                "bm25": "BM25 (rank_bm25)",
+                "semantic": f"FAISS (IndexFlatIP) + {self.embedder.name if self.embedder else ''}",
+                "hybrid": f"BM25 + FAISS ({self.embedder.name if self.embedder else ''}) with Reciprocal Rank Fusion",
+            }[self.retrieval_mode],
         }
 
 

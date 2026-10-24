@@ -4,7 +4,7 @@
   "top_k": 5,
   "documents": 7,
   "chunks": 24,
-  "index_seconds": 2.57,
+  "index_seconds": 2.59,
   "summary": {
     "overall": {
       "n": 40,
@@ -12,7 +12,7 @@
       "hit@3": 0.9,
       "hit@5": 0.9,
       "mrr": 0.7583333333333332,
-      "ms_per_query": 30.45825
+      "ms_per_query": 32.95175
     },
     "lexical": {
       "n": 15,
@@ -20,7 +20,7 @@
       "hit@3": 1.0,
       "hit@5": 1.0,
       "mrr": 0.9222222222222222,
-      "ms_per_query": 29.760666666666665
+      "ms_per_query": 33.27333333333333
     },
     "paraphrase": {
       "n": 15,
@@ -28,7 +28,7 @@
       "hit@3": 0.9333333333333333,
       "hit@5": 0.9333333333333333,
       "mrr": 0.7555555555555554,
-      "ms_per_query": 33.349333333333334
+      "ms_per_query": 34.92333333333333
     },
     "exact": {
       "n": 10,
@@ -36,7 +36,7 @@
       "hit@3": 0.7,
       "hit@5": 0.7,
       "mrr": 0.5166666666666666,
-      "ms_per_query": 27.168
+      "ms_per_query": 29.512
     }
   },
   "questions": [
@@ -47,7 +47,7 @@
       "expected_page": 1,
       "type": "lexical",
       "rank": 1,
-      "ms": 31.33,
+      "ms": 32.62,
       "top": [
         {
           "doc_name": "SOP-PUMP-402.pdf",
@@ -93,7 +93,7 @@
       "expected_page": 2,
       "type": "lexical",
       "rank": 3,
-      "ms": 33.68,
+      "ms": 35.16,
       "top": [
         {
           "doc_name": "SOP-PUMP-402.pdf",
@@ -139,7 +139,7 @@
       "expected_page": 1,
       "type": "lexical",
       "rank": 1,
-      "ms": 30.34,
+      "ms": 33.13,
       "top": [
         {
           "doc_name": "pump_inspection.pdf",
@@ -185,7 +185,7 @@
       "expected_page": 2,
       "type": "lexical",
       "rank": 1,
-      "ms": 27.46,
+      "ms": 34.87,
       "top": [
         {
           "doc_name": "SOP-COMP-210.pdf",
@@ -231,7 +231,7 @@
       "expected_page": 3,
       "type": "lexical",
       "rank": 1,
-      "ms": 28.9,
+      "ms": 29.77,
       "top": [
         {
           "doc_name": "SOP-COMP-210.pdf",
@@ -277,7 +277,7 @@
       "expected_page": 3,
       "type": "lexical",
       "rank": 1,
-      "ms": 29.36,
+      "ms": 33.05,
       "top": [
         {
           "doc_name": "SOP-COMP-210.pdf",
@@ -323,7 +323,7 @@
       "expected_page": 1,
       "type": "lexical",
       "rank": 1,
-      "ms": 31.36,
+      "ms": 36.04,
       "top": [
         {
           "doc_name": "MAN-BRG-115.pdf",
@@ -369,7 +369,7 @@
       "expected_page": 3,
       "type": "lexical",
       "rank": 1,
-      "ms": 27.08,
+      "ms": 30.16,
       "top": [
         {
           "doc_name": "MAN-BRG-115.pdf",
@@ -415,7 +415,7 @@
       "expected_page": 2,
       "type": "lexical",
       "rank": 1,
-      "ms": 30.35,
+      "ms": 37.22,
       "top": [
         {
           "doc_name": "MAN-BRG-115.pdf",
@@ -461,7 +461,7 @@
       "expected_page": 2,
       "type": "lexical",
       "rank": 1,
-      "ms": 25.32,
+      "ms": 29.45,
       "top": [
         {
           "doc_name": "SOP-LOTO-001.pdf",
@@ -507,7 +507,7 @@
       "expected_page": 3,
       "type": "lexical",
       "rank": 1,
-      "ms": 28.34,
+      "ms": 31.77,
       "top": [
         {
           "doc_name": "SOP-LOTO-001.pdf",
@@ -553,7 +553,7 @@
       "expected_page": 1,
       "type": "lexical",
       "rank": 1,
-      "ms": 25.97,
+      "ms": 31.82,
       "top": [
         {
           "doc_name": "RPT-MTR-330.pdf",
@@ -599,7 +599,7 @@
       "expected_page": 2,
       "type": "lexical",
       "rank": 1,
-      "ms": 31.03,
+      "ms": 34.53,
       "top": [
         {
           "doc_name": "RPT-MTR-330.pdf",
@@ -645,7 +645,7 @@
       "expected_page": 2,
       "type": "lexical",
       "rank": 2,
-      "ms": 31.94,
+      "ms": 37.22,
       "top": [
         {
           "doc_name": "SOP-HX-505.pdf",
@@ -691,7 +691,7 @@
       "expected_page": 3,
       "type": "lexical",
       "rank": 1,
-      "ms": 33.95,
+      "ms": 32.29,
       "top": [
         {
           "doc_name": "SOP-HX-505.pdf",
@@ -737,7 +737,7 @@
       "expected_page": 2,
       "type": "paraphrase",
       "rank": 3,
-      "ms": 39.39,
+      "ms": 37.99,
       "top": [
         {
           "doc_name": "pump_inspection.pdf",
@@ -783,7 +783,7 @@
       "expected_page": 1,
       "type": "paraphrase",
       "rank": 1,
-      "ms": 30.41,
+      "ms": 31.76,
       "top": [
         {
           "doc_name": "SOP-PUMP-402.pdf",
@@ -829,7 +829,7 @@
       "expected_page": 1,
       "type": "paraphrase",
       "rank": 2,
-      "ms": 32.6,
+      "ms": 35.45,
       "top": [
         {
           "doc_name": "SOP-PUMP-402.pdf",
@@ -875,7 +875,7 @@
       "expected_page": 1,
       "type": "paraphrase",
       "rank": 2,
-      "ms": 33.08,
+      "ms": 33.7,
       "top": [
         {
           "doc_name": "SOP-LOTO-001.pdf",
@@ -921,7 +921,7 @@
       "expected_page": 2,
       "type": "paraphrase",
       "rank": null,
-      "ms": 32.1,
+      "ms": 32.47,
       "top": [
         {
           "doc_name": "RPT-MTR-330.pdf",
@@ -967,7 +967,7 @@
       "expected_page": 3,
       "type": "paraphrase",
       "rank": 1,
-      "ms": 29.02,
+      "ms": 32.86,
       "top": [
         {
           "doc_name": "SOP-COMP-210.pdf",
@@ -1013,7 +1013,7 @@
       "expected_page": 1,
       "type": "paraphrase",
       "rank": 1,
-      "ms": 34.04,
+      "ms": 35.71,
       "top": [
         {
           "doc_name": "MAN-BRG-115.pdf",
@@ -1059,7 +1059,7 @@
       "expected_page": 2,
       "type": "paraphrase",
       "rank": 1,
-      "ms": 35.86,
+      "ms": 37.82,
       "top": [
         {
           "doc_name": "MAN-BRG-115.pdf",
@@ -1105,7 +1105,7 @@
       "expected_page": 3,
       "type": "paraphrase",
       "rank": 1,
-      "ms": 32.27,
+      "ms": 34.52,
       "top": [
         {
           "doc_name": "MAN-BRG-115.pdf",
@@ -1151,7 +1151,7 @@
       "expected_page": 2,
       "type": "paraphrase",
       "rank": 1,
-      "ms": 33.98,
+      "ms": 35.29,
       "top": [
         {
           "doc_name": "SOP-LOTO-001.pdf",
@@ -1197,7 +1197,7 @@
       "expected_page": 3,
       "type": "paraphrase",
       "rank": 1,
-      "ms": 36.65,
+      "ms": 40.0,
       "top": [
         {
           "doc_name": "SOP-LOTO-001.pdf",
@@ -1243,7 +1243,7 @@
       "expected_page": 1,
       "type": "paraphrase",
       "rank": 2,
-      "ms": 33.02,
+      "ms": 29.81,
       "top": [
         {
           "doc_name": "SOP-LOTO-001.pdf",
@@ -1289,7 +1289,7 @@
       "expected_page": 3,
       "type": "paraphrase",
       "rank": 1,
-      "ms": 35.18,
+      "ms": 38.16,
       "top": [
         {
           "doc_name": "RPT-MTR-330.pdf",
@@ -1335,7 +1335,7 @@
       "expected_page": 1,
       "type": "paraphrase",
       "rank": 1,
-      "ms": 30.67,
+      "ms": 29.15,
       "top": [
         {
           "doc_name": "RPT-MTR-330.pdf",
@@ -1381,7 +1381,7 @@
       "expected_page": 1,
       "type": "paraphrase",
       "rank": 2,
-      "ms": 31.97,
+      "ms": 39.16,
       "top": [
         {
           "doc_name": "SOP-HX-505.pdf",
@@ -1427,7 +1427,7 @@
       "expected_page": 1,
       "type": "exact",
       "rank": 1,
-      "ms": 27.76,
+      "ms": 26.63,
       "top": [
         {
           "doc_name": "SOP-PUMP-402.pdf",
@@ -1473,7 +1473,7 @@
       "expected_page": 2,
       "type": "exact",
       "rank": 3,
-      "ms": 30.31,
+      "ms": 32.83,
       "top": [
         {
           "doc_name": "pump_inspection.pdf",
@@ -1519,7 +1519,7 @@
       "expected_page": 1,
       "type": "exact",
       "rank": 2,
-      "ms": 29.8,
+      "ms": 32.6,
       "top": [
         {
           "doc_name": "SOP-PUMP-402.pdf",
@@ -1565,7 +1565,7 @@
       "expected_page": 2,
       "type": "exact",
       "rank": 3,
-      "ms": 29.55,
+      "ms": 32.4,
       "top": [
         {
           "doc_name": "SOP-PUMP-402.pdf",
@@ -1611,7 +1611,7 @@
       "expected_page": 1,
       "type": "exact",
       "rank": 1,
-      "ms": 26.78,
+      "ms": 28.8,
       "top": [
         {
           "doc_name": "SOP-COMP-210.pdf",
@@ -1657,7 +1657,7 @@
       "expected_page": 3,
       "type": "exact",
       "rank": null,
-      "ms": 25.84,
+      "ms": 28.44,
       "top": [
         {
           "doc_name": "SOP-HX-505.pdf",
@@ -1703,7 +1703,7 @@
       "expected_page": 2,
       "type": "exact",
       "rank": 1,
-      "ms": 26.08,
+      "ms": 28.36,
       "top": [
         {
           "doc_name": "MAN-BRG-115.pdf",
@@ -1749,7 +1749,7 @@
       "expected_page": 3,
       "type": "exact",
       "rank": 1,
-      "ms": 24.29,
+      "ms": 26.04,
       "top": [
         {
           "doc_name": "MAN-BRG-115.pdf",
@@ -1795,7 +1795,7 @@
       "expected_page": 3,
       "type": "exact",
       "rank": null,
-      "ms": 27.38,
+      "ms": 30.33,
       "top": [
         {
           "doc_name": "SOP-COMP-210.pdf",
@@ -1841,7 +1841,7 @@
       "expected_page": 3,
       "type": "exact",
       "rank": null,
-      "ms": 23.89,
+      "ms": 28.69,
       "top": [
         {
           "doc_name": "pump_inspection.pdf",
