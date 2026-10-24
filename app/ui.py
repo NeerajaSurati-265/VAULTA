@@ -2,6 +2,7 @@ import os
 import streamlit as st
 import requests
 from app.main_services.report_generator import generate_approval_note
+from app.config import BACKEND_URL, OLLAMA_URL, MODEL, DOCUMENTS_DIR, SPREADSHEETS_DIR
 
 
 # -------------------------------------------------------------------
@@ -67,8 +68,8 @@ st.markdown(
 # SYSTEM STATUS BAR (Live backend status checks)
 # -------------------------------------------------------------------
 
-backend_url = "http://127.0.0.1:8000"
-health_data = {"status": "offline", "ollama": "disconnected", "models": ["qwen2.5:3b"]}
+backend_url = BACKEND_URL
+health_data = {"status": "offline", "ollama": "disconnected", "models": [MODEL]}
 kb_data = {"documents_count": 0, "total_chunks": 0, "status": "unavailable"}
 
 try:
@@ -88,7 +89,7 @@ except Exception:
 status_col1, status_col2, status_col3, status_col4, status_col5 = st.columns(5)
 
 with status_col1:
-    model_name = health_data.get("models", ["qwen2.5:3b"])[0] if health_data.get("models") else "qwen2.5:3b"
+    model_name = health_data.get("models", [MODEL])[0] if health_data.get("models") else MODEL
     st.metric("LOCAL AI RUNTIME", model_name, "Ollama Localhost")
 
 with status_col2:
@@ -128,9 +129,9 @@ with tab_inv:
     st.subheader("⚡ Multi-Agent Industrial Investigation Workbench")
     st.caption("Cross-Source Investigation: Document Agent + Data Agent + Knowledge Base + Verifier + Signed Approval Note")
 
-    demo_insp_path = "/home/nsurati/VAULTA/data/documents/pump_inspection.pdf"
-    demo_data_path = "/home/nsurati/VAULTA/data/spreadsheets/maintenance_metrics.csv"
-    demo_sop_path = "/home/nsurati/VAULTA/data/documents/SOP-PUMP-402.pdf"
+    demo_insp_path = str(DOCUMENTS_DIR / "pump_inspection.pdf")
+    demo_data_path = str(SPREADSHEETS_DIR / "maintenance_metrics.csv")
+    demo_sop_path = str(DOCUMENTS_DIR / "SOP-PUMP-402.pdf")
 
     has_demo_files = (
         os.path.exists(demo_insp_path)
@@ -656,11 +657,11 @@ with tab_sov:
 
     with sov_col1:
         st.markdown(
-            """
+            f"""
             ### System Guarantees
             * **Processing Environment:** On-Premise / Local Host
             * **Runtime LLM:** Qwen 2.5 3B (Open-Weight)
-            * **Inference Server:** Ollama (`http://127.0.0.1:11434`)
+            * **Inference Server:** Ollama (`{OLLAMA_URL}`)
             * **Vector Engine:** FAISS (`IndexFlatIP`)
             * **External API Calls:** `0` (Zero Egress)
             * **Cloud AI Dependencies:** `None` (Air-Gapped)

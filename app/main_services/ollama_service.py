@@ -1,7 +1,6 @@
 import requests
 
-OLLAMA_URL = "http://127.0.0.1:11434"
-MODEL = "qwen2.5:3b"
+from app.config import OLLAMA_URL, MODEL, OLLAMA_TIMEOUT
 
 
 def get_models():
@@ -23,7 +22,7 @@ def ask_local_ai(prompt: str) -> str:
     response = requests.post(
         f"{OLLAMA_URL}/api/generate",
         json=payload,
-        timeout=180,
+        timeout=OLLAMA_TIMEOUT,
     )
     response.raise_for_status()
 

@@ -57,71 +57,135 @@ Engineering Request
                         │
                         ▼
                 Approval Note (.DOCX)
+```
 
-System Requirements
-OS: Ubuntu 22.04+ recommended
-Python: 3.10+
-RAM: 8 GB minimum, 16 GB recommended
-Storage: 10 GB+ free space
-CPU: Modern x86_64 processor
-GPU: Not required for the current Qwen 2.5 3B setup
-Git: Required
-Ollama: Required
-Docker: Optional
+---
 
-Windows: Can be used through WSL2, but Ubuntu/Linux is recommended for development and deployment.
+## 🖥️ System Requirements
 
-Installation
-1. Clone the Repository
+- **OS:** Ubuntu 22.04+ recommended (Windows works through WSL2)
+- **Python:** 3.10+
+- **RAM:** 8 GB minimum, 16 GB recommended
+- **Storage:** 10 GB+ free space
+- **CPU:** Modern x86_64 processor
+- **GPU:** Not required for the default Qwen 2.5 3B model
+- **Git** and **curl**
+- **Ollama:** Required (local LLM server)
+
+---
+
+## 📦 Installation
+
+### 1. Clone the repository
+
+```bash
 git clone https://github.com/NeerajaSurati-265/VAULTA.git
 cd VAULTA
-2. Create Python Virtual Environment
+```
+
+### 2. Create a Python virtual environment
+
+```bash
+sudo apt install -y python3-venv   # only if `python3 -m venv` fails
 python3 -m venv .venv
 source .venv/bin/activate
-3. Install Python Dependencies
+```
+
+### 3. Install Python dependencies
+
+```bash
+pip install --upgrade pip
 pip install -r requirements.txt
-4. Install Ollama
+```
 
-Install Ollama on your system, then download the local AI model:
+### 4. Install Ollama and pull the model
 
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
 ollama pull qwen2.5:3b
+ollama list          # qwen2.5:3b should be listed
+```
 
-Verify the model:
+On Ubuntu the installer runs Ollama as a background service. If `ollama list` says it cannot connect, start the server in a separate terminal:
 
-ollama list
-
-You should see:
-
-qwen2.5:3b
-5. Start Ollama
-
-If Ollama is not already running:
-
+```bash
 ollama serve
+```
 
-VAULTA uses Ollama to run Qwen 2.5 3B locally. No OpenAI/Gemini API key is required for the core runtime.
+No OpenAI/Gemini API key is needed. All inference runs locally through Ollama.
 
-6. Run VAULTA
+### 5. Run VAULTA
 
-From the project root:
+```bash
+./run.sh
+```
 
-source .venv/bin/activate
-PYTHONPATH=. streamlit run app/ui.py
+`run.sh` checks that Ollama is reachable and the model is pulled, starts the FastAPI backend on port 8000, waits for it to be healthy, and then starts the Streamlit UI. Open the URL Streamlit prints (usually http://localhost:8501). Press `Ctrl+C` to stop both.
 
-Open the local Streamlit URL displayed in the terminal.
+---
 
-Quick Setup
+## ⚡ Quick Setup
 
 For a fresh Ubuntu machine:
 
+```bash
 git clone https://github.com/NeerajaSurati-265/VAULTA.git
 cd VAULTA
 
 python3 -m venv .venv
 source .venv/bin/activate
-
 pip install -r requirements.txt
 
+curl -fsSL https://ollama.com/install.sh | sh
 ollama pull qwen2.5:3b
 
+./run.sh
+```
+
+---
+
+## 🔧 Running Manually (two terminals)
+
+The UI talks to the backend over HTTP, so **both** must be running. From the repo root, with the virtual environment active in each terminal:
+
+**Terminal 1: backend (FastAPI)**
+
+```bash
+source .venv/bin/activate
+PYTHONPATH=. uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+**Terminal 2: UI (Streamlit)**
+
+```bash
+source .venv/bin/activate
 PYTHONPATH=. streamlit run app/ui.py
+```
+
+Check the backend with `curl http://127.0.0.1:8000/health`.
+
+---
+
+## ⚙️ Configuration (environment variables)
+
+All settings live in `app/config.py` and can be overridden with environment variables:
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `OLLAMA_URL` | `http://127.0.0.1:11434` | Ollama server URL |
+| `VAULTA_MODEL` | `qwen2.5:3b` | Ollama model used for all LLM calls |
+| `OLLAMA_TIMEOUT` | `300` | Seconds to wait for one Ollama response |
+| `VAULTA_BACKEND_URL` | `http://127.0.0.1:8000` | Backend URL used by the UI (and by `run.sh` to pick host/port) |
+| `VAULTA_LOG_LEVEL` | `INFO` | Backend log level (`DEBUG`, `INFO`, `WARNING`, ...) |
+
+Data paths are resolved relative to the repo root, so it does not matter which directory you start from:
+
+- `data/documents/` – PDFs auto-indexed into the knowledge base at startup
+- `data/spreadsheets/` – demo datasets
+- `data/index/` – saved knowledge-base index (generated; not committed)
+
+Example:
+
+```bash
+VAULTA_MODEL=qwen2.5:7b OLLAMA_TIMEOUT=600 ./run.sh
+```

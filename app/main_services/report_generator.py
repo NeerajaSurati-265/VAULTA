@@ -8,6 +8,8 @@ from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
 from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import nsdecls, qn
 
+from app.config import MODEL
+
 
 def _set_cell_background(cell, fill_hex: str):
     """Sets background color for a table cell."""
@@ -41,7 +43,7 @@ def generate_approval_note(
     calculated_results: Optional[Dict[str, Any]] = None,
     retrieved_chunks: Optional[List[Dict[str, Any]]] = None,
     execution_trace: Optional[List[Dict[str, Any]]] = None,
-    model_name: str = "qwen2.5:3b",
+    model_name: str = MODEL,
 ) -> bytes:
     """
     Generates a formal, sovereign engineering approval note as a .docx file in memory.
