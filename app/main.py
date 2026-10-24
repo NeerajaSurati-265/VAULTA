@@ -33,7 +33,7 @@ from app.main_services.data_service import (
     build_data_interpretation_prompt,
 )
 
-from app.main_services.rag_service import knowledge_base
+from app.main_services.rag_service import knowledge_base, describe_chunk, chunk_provenance
 from app.main_services.verifier_service import verify_output
 from app.main_services.report_generator import generate_approval_note
 from app.main_services.investigation_service import run_unified_investigation
@@ -459,10 +459,12 @@ async def agent_run(
                 "stage": "KNOWLEDGE_RETRIEVAL",
                 "status": "completed",
                 "details": {
-                    "processor": "FAISS (IndexFlatIP)",
+                    "processor": knowledge_base.get_status()["processor"],
+                    "retrieval_mode": knowledge_base.retrieval_mode,
                     "top_k": 3,
                     "chunks_retrieved": len(retrieved),
-                    "sources": [f"{c['doc_name']} (p.{c['page_number']})" for c in retrieved],
+                    "sources": [describe_chunk(c) for c in retrieved],
+                    "chunks": [chunk_provenance(c) for c in retrieved],
                     "status": "completed",
                 },
             })

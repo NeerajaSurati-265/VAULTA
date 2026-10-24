@@ -4,7 +4,7 @@ from typing import Dict, Any, List, Optional
 from app.main_services.ollama_service import ask_local_ai, MODEL
 from app.main_services.pdf_service import extract_text_from_pdf
 from app.main_services.data_service import load_dataset, compute_deterministic_analysis
-from app.main_services.rag_service import knowledge_base
+from app.main_services.rag_service import knowledge_base, describe_chunk, chunk_provenance
 from app.main_services.verifier_service import verify_output
 from app.main_services.report_generator import generate_approval_note
 
@@ -127,9 +127,11 @@ def run_unified_investigation(
         "status": "completed",
         "details": {
             "agent": "KNOWLEDGE_ANALYST",
-            "processor": "FAISS IndexFlatIP",
+            "processor": knowledge_base.get_status()["processor"],
+            "retrieval_mode": knowledge_base.retrieval_mode,
             "chunks_retrieved": len(retrieved_chunks),
-            "sources": [f"{c['doc_name']} (p.{c['page_number']})" for c in retrieved_chunks],
+            "sources": [describe_chunk(c) for c in retrieved_chunks],
+            "chunks": [chunk_provenance(c) for c in retrieved_chunks],
             "status": "completed",
         },
     })

@@ -39,6 +39,21 @@ def tokenize(text: str) -> List[str]:
     return tokens
 
 
+def describe_chunk(chunk: Dict[str, Any]) -> str:
+    """One-line provenance for traces, e.g. "SOP-PUMP-402.pdf p.2 | score 0.0325 | BM25 #1 | vector #3"."""
+    def rank(r):
+        return f"#{r}" if r else "-"
+    return (
+        f"{chunk['doc_name']} p.{chunk['page_number']} | score {chunk.get('score')} | "
+        f"BM25 {rank(chunk.get('bm25_rank'))} | vector {rank(chunk.get('vector_rank'))}"
+    )
+
+
+def chunk_provenance(chunk: Dict[str, Any]) -> Dict[str, Any]:
+    """The fields of a retrieved chunk that explain why it was picked (no text)."""
+    return {k: chunk.get(k) for k in ("doc_name", "page_number", "score", "bm25_rank", "vector_rank")}
+
+
 def rrf_merge(ranked_lists: List[List[int]], k: int = RRF_K) -> List[Tuple[int, float]]:
     """Reciprocal Rank Fusion: score(item) = sum over lists of 1 / (k + rank), rank from 1.
 

@@ -168,6 +168,75 @@ Check the backend with `curl http://127.0.0.1:8000/health`.
 
 ---
 
+## 🔎 How retrieval works
+
+The knowledge base splits every PDF page into ~500-character chunks (100-character overlap) and keeps page numbers so answers can cite their source. In the default `hybrid` mode, a question is answered like this:
+
+```text
+                    question
+                       │
+          ┌────────────┴────────────┐
+          ▼                         ▼
+   BM25 keyword search       Semantic search (FAISS)
+   (exact IDs, numbers:      nomic-embed-text vectors via
+    "P-402", "4.5 mm/s")     local Ollama (synonyms, paraphrases)
+          │ top 20                  │ top 20
+          └────────────┬────────────┘
+                       ▼
+          Reciprocal Rank Fusion
+          score = Σ 1 / (60 + rank)
+                       │ top k
+                       ▼
+          Grounded answer from qwen2.5:3b
+          (cites document + page)
+```
+
+- **BM25** is strong when the question uses the document's exact words, IDs or numbers.
+- **Semantic** search finds passages that mean the same thing in different words ("shaking" ↔ "vibration").
+- **RRF** combines the two lists by rank only, so the different score scales never need to be normalised. Every retrieved chunk reports its final score plus its BM25 rank and vector rank, and these appear in the UI and the execution trace.
+
+Other modes (`VAULTA_RETRIEVAL_MODE`): `bm25` (keyword only, no embedding model), `semantic` (vectors only), `hashing` (the original hashed-keyword vectors). The saved index records its mode and embedding model; after a switch, the saved chunks are re-embedded automatically on the next start.
+
+---
+
+## 📏 Evaluation
+
+`eval/questions.jsonl` holds 40 questions over the 7 PDFs in `data/documents/`, each labelled with the document and page that answers it:
+- 15 **lexical**: the question uses the document's own wording
+- 15 **paraphrase**: synonyms only, e.g. "shaking" for vibration, "cut off every power source" for isolate
+- 10 **exact**: IDs and numbers such as `V-211`, `ISO VG 46`, `7.1 mm/s`
+
+`hit@k` means the expected document+page appears in the top k chunks. `MRR` is the mean reciprocal rank of the first correct chunk.
+
+| Mode | Overall hit@1 | Overall hit@3 | Overall hit@5 | Overall MRR | Lexical hit@3 | Paraphrase hit@3 | Exact hit@3 | ms/query | Indexing (s) |
+|------|---|---|---|---|---|---|---|---|---|
+| hashing | 35% | 55% | 70% | 0.470 | 87% | 20% | 60% | 0.2 | 0.02 |
+| bm25 | 72% | 88% | 90% | 0.794 | 100% | 67% | 100% | 0.1 | 0.01 |
+| semantic | 65% | 90% | 90% | 0.758 | 100% | 93% | 70% | 33.0 | 2.59 |
+| **hybrid** (default) | 68% | 90% | 95% | 0.792 | 100% | 80% | 90% | 32.9 | 2.49 |
+
+Reproduce (needs Ollama with `nomic-embed-text` for the semantic and hybrid modes):
+
+```bash
+python eval/run_eval.py --mode hybrid   # one mode
+python eval/run_eval.py --mode all      # all four modes, comparison table
+```
+
+Results (including per-question ranks) are written to `eval/results/<mode>.json`.
+
+**Caveats:** the five synthetic documents (`scripts/make_sample_docs.py`) and the questions were written by the same author, so this is a sanity benchmark for comparing modes, not an independent one. With 40 questions, one question equals 2.5 percentage points.
+
+### Running the tests
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+The tests mock the LLM and embedding calls, so they run without Ollama.
+
+---
+
 ## ⚙️ Configuration (environment variables)
 
 All settings live in `app/config.py` and can be overridden with environment variables:

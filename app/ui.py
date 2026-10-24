@@ -96,6 +96,11 @@ def post_backend(path, **kwargs):
         raise BackendError(f"Backend returned HTTP {resp.status_code}: {msg}")
     return resp.json()
 
+
+def chunk_ranks(chunk):
+    """Why a chunk was retrieved: its rank in each ranker ("-" = not in that ranker's list)."""
+    return f"BM25 rank: `{chunk.get('bm25_rank') or '-'}` | Vector rank: `{chunk.get('vector_rank') or '-'}`"
+
 health_data = {"status": "offline", "ollama": "disconnected", "models": [MODEL]}
 kb_data = {"documents_count": 0, "total_chunks": 0, "status": "unavailable"}
 
@@ -131,7 +136,7 @@ with status_col5:
     doc_cnt = kb_data.get("documents_count", 0)
     chk_cnt = kb_data.get("total_chunks", 0)
     kb_state = f"READY ({doc_cnt} docs, {chk_cnt} chunks)" if doc_cnt > 0 else "READY (0 docs)"
-    st.metric("KNOWLEDGE BASE", kb_state, "FAISS IndexFlatIP")
+    st.metric("KNOWLEDGE BASE", kb_state, f"{kb_data.get('retrieval_mode', 'offline')} retrieval")
 
 # Ollama lists untagged models as "<name>:latest"
 if health_data.get("ollama") == "connected" and not {MODEL, f"{MODEL}:latest"} & set(health_data.get("models", [])):
@@ -245,7 +250,7 @@ with tab_inv:
                             elif stg == "DATA_AGENT":
                                 st.markdown(f"**✓ 3. Data Agent (`DATA_ANALYST`)**\n\n• Processor: `{dt.get('processor')}` | File: `{dt.get('filename')}` ({dt.get('rows')} rows, {dt.get('columns')} columns)")
                             elif stg == "KNOWLEDGE_AGENT":
-                                st.markdown(f"**✓ 4. Knowledge Agent (`KNOWLEDGE_ANALYST`)**\n\n• Processor: `{dt.get('processor')}` | Chunks Retrieved: `{dt.get('chunks_retrieved')}` ({', '.join(dt.get('sources', []))})")
+                                st.markdown(f"**✓ 4. Knowledge Agent (`KNOWLEDGE_ANALYST`)**\n\n• Processor: `{dt.get('processor')}` | Chunks Retrieved: `{dt.get('chunks_retrieved')}` (mode `{dt.get('retrieval_mode')}`)" + "".join(f"\n\n  - `{src}`" for src in dt.get('sources', [])))
                             elif stg == "ROOT_CAUSE_SYNTHESIS":
                                 st.markdown(f"**✓ 5. Root-Cause Cross-Synthesis**\n\n• Agent: `{dt.get('agent')}` | Model: `{dt.get('model')}` (Local Inference)")
                             elif stg == "CROSS_SOURCE_VERIFICATION":
@@ -314,7 +319,7 @@ with tab_inv:
                     with t3:
                         if ev.get("sop_standards") and ev["sop_standards"].get("retrieved_chunks"):
                             for c in ev["sop_standards"]["retrieved_chunks"]:
-                                st.markdown(f"**{c.get('doc_name')} (p.{c.get('page_number')})** — *Score: {c.get('score')}*")
+                                st.markdown(f"**{c.get('doc_name')} (p.{c.get('page_number')})** — *Score: {c.get('score')}* | {chunk_ranks(c)}")
                                 st.text(c.get("text", ""))
                         else:
                             st.write("No SOP chunks retrieved.")
@@ -520,7 +525,7 @@ with tab_data:
 # ===================================================================
 with tab_kb:
     st.subheader("📚 Sovereign Knowledge Base / Local RAG")
-    st.caption("FAISS cosine vector retrieval across indexed plant SOPs and operating manuals.")
+    st.caption(f"{kb_data.get('processor', 'Local retrieval')} across indexed plant SOPs and operating manuals.")
 
     kb_c1, kb_c2, kb_c3 = st.columns(3)
     with kb_c1:
@@ -528,7 +533,8 @@ with tab_kb:
     with kb_c2:
         st.metric("Total Vector Chunks", kb_data.get("total_chunks", 0))
     with kb_c3:
-        st.metric("Vector Index", "FAISS IndexFlatIP (1024-d)")
+        dim = kb_data.get("index_dimension")
+        st.metric("Retrieval Mode", f"{kb_data.get('retrieval_mode', 'offline')}" + (f" ({dim}-d)" if dim else ""))
 
     if kb_data.get("indexed_documents"):
         st.write(f"**Indexed SOPs in Memory:** `{', '.join(kb_data.get('indexed_documents', []))}`")
@@ -564,7 +570,7 @@ with tab_kb:
         if not kb_query.strip():
             st.warning("Please enter a search query.")
         else:
-            with st.spinner("Searching FAISS vector index and synthesizing grounded answer..."):
+            with st.spinner("Searching the knowledge base and synthesizing grounded answer..."):
                 try:
                     result = post_backend(
                         "/agent/run",
@@ -583,7 +589,7 @@ with tab_kb:
                                 if stage == "TASK_ROUTING":
                                     st.markdown(f"**✓ Task Router:** Route `{details.get('route')}`")
                                 elif stage == "KNOWLEDGE_RETRIEVAL":
-                                    st.markdown(f"**✓ FAISS Retrieval:** Retrieved `{details.get('chunks_retrieved')}` chunks from {', '.join(details.get('sources', []))}")
+                                    st.markdown(f"**✓ Retrieval (`{details.get('retrieval_mode')}`):** Retrieved `{details.get('chunks_retrieved')}` chunks" + "".join(f"\n\n  - `{src}`" for src in details.get('sources', [])))
                                 elif stage == "KNOWLEDGE_SYNTHESIS":
                                     st.markdown(f"**✓ Grounded Synthesis:** Model `{details.get('model')}`")
                                 elif stage == "VERIFICATION":
@@ -629,7 +635,7 @@ with tab_kb:
                     if retrieved_chunks:
                         with st.expander(f"📑 Retrieved Context Chunks ({len(retrieved_chunks)} citations)"):
                             for i, chunk in enumerate(retrieved_chunks, start=1):
-                                st.markdown(f"**Source #{i}: `{chunk.get('doc_name')}` (Page {chunk.get('page_number')})** — *Score: `{chunk.get('score')}`*")
+                                st.markdown(f"**Source #{i}: `{chunk.get('doc_name')}` (Page {chunk.get('page_number')})** — *Score: `{chunk.get('score')}`* | {chunk_ranks(chunk)}")
                                 st.text(chunk.get("text", ""))
 
                 except Exception as e:
@@ -680,6 +686,8 @@ with tab_sov:
             * **Runtime LLM:** Qwen 2.5 3B (Open-Weight)
             * **Inference Server:** Ollama (`{OLLAMA_URL}`)
             * **Vector Engine:** FAISS (`IndexFlatIP`)
+            * **Knowledge Retrieval:** `{kb_data.get('retrieval_mode', 'offline')}` ({kb_data.get('processor', 'backend offline')})
+            * **Embedding Model:** `{kb_data.get('embed_model') or 'none'}` (local, via Ollama)
             * **External API Calls:** `0` (Zero Egress)
             * **Cloud AI Dependencies:** `None` (Air-Gapped)
             """
