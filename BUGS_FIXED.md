@@ -19,7 +19,7 @@
 | B9 | Router can pick an agent that doesn't match the attached file type | Fixed | `app/main.py` |
 | B10 | No logging of Ollama calls, retrieval, or ingestion | Fixed | `app/main.py`, `app/main_services/ollama_service.py`, `app/main_services/rag_service.py` |
 | C1 | No automated tests | Fixed | `tests/` (new), `pytest.ini` (new), `requirements-dev.txt` (+`httpx`), `app/config.py` (`VAULTA_INDEX_DIR`) |
-| C3 | Clean-install check (fresh venv, `pip install -r requirements-dev.txt`, run tests) | Open (in progress; PyPI downloads keep timing out on this network) | |
+| C3 | Clean-install check: fresh venv, `pip install -r requirements-dev.txt`, `pip check` clean, 24/24 tests pass with Ollama unreachable, `app.main` + `app.ui` import. Only `httpx` (for `TestClient`) was missing; it is now in `requirements-dev.txt` | Fixed | `requirements-dev.txt` |
 | D1 | UI HTTP timeouts (180–300 s) are shorter than the worst case backend time: `/agent/run` makes 2 Ollama calls of up to `OLLAMA_TIMEOUT` (300 s) each, so the UI can give up while the backend is still working | Fixed | `app/config.py` (`UI_REQUEST_TIMEOUT`), `app/ui.py` (`post_backend` helper) |
 | D2 | UI status bar shows the *first* model Ollama lists, not the configured `VAULTA_MODEL` | Fixed | `app/ui.py` |
 | D3 | `/investigate`, `/agent/run`, `/analyze-pdf` and `/knowledge/ingest` are `async def` but do blocking work (Ollama calls take ~60 s), so they block the event loop: while one investigation runs, every other request (including `/health` and the UI status bar) hangs | Fixed | `app/main.py` (`run_in_threadpool`) |
