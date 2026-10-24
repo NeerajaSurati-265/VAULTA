@@ -17,6 +17,7 @@ from app.main_services.ollama_service import ask_local_ai, MODEL
 logger = logging.getLogger(__name__)
 
 EMBEDDING_DIM = 1024
+RETRIEVAL_MODES = ("hashing",)
 INDEX_FILENAME = "knowledge.faiss"
 META_FILENAME = "knowledge_meta.json"
 
@@ -31,7 +32,11 @@ class LocalKnowledgeBase:
         dimension: int = EMBEDDING_DIM,
         index_dir: Optional[Path] = None,
         documents_dir: Optional[Path] = None,
+        retrieval_mode: str = "hashing",
     ):
+        if retrieval_mode not in RETRIEVAL_MODES:
+            raise ValueError(f"Unknown retrieval mode {retrieval_mode!r}; expected one of {RETRIEVAL_MODES}")
+        self.retrieval_mode = retrieval_mode
         self.dimension = dimension
         self.index_dir = Path(index_dir or INDEX_DIR)
         self.vectorizer = HashingVectorizer(

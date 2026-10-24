@@ -25,3 +25,12 @@
 | D4 | UI uses `raise_for_status()`, so a backend 503 shows as `503 Server Error: Service Unavailable for url ...` instead of the backend's helpful `{"error": ...}` message | Fixed | `app/ui.py` (`post_backend` shows backend `error`/`detail`) |
 | D5 | Because of B4 (skip by filename), uploading an *updated* PDF with the same filename is silently skipped, and there is no way to remove or replace a document; the UI also reports it as "Indexed (0 chunks added)" | Fixed | `app/main_services/rag_service.py` (SHA-256 per file; changed content replaces old chunks), `app/ui.py` |
 | D6 | B7 chunk merge used `.strip()` on the joined text, trimming the edges of overlap windows (found by the new chunking test) | Fixed | `app/main_services/rag_service.py` |
+
+## Upgrades
+
+| ID | Description | Status | Files changed |
+|----|-------------|--------|---------------|
+| U1 | Retrieval eval: 5 synthetic docs (reproducible script), 40-question eval set (15 lexical / 15 paraphrase / 10 exact), `eval/run_eval.py`, hashing baseline (hit@3 55%) | Done | `scripts/make_sample_docs.py`, `data/documents/*.pdf` (5 new), `eval/questions.jsonl`, `eval/run_eval.py`, `eval/results/hashing.json`, `app/main_services/rag_service.py` (`retrieval_mode` param) |
+| U2 | Local semantic embeddings via Ollama `/api/embed` (`nomic-embed-text`) | Open | |
+| U3 | BM25 + hybrid retrieval (Reciprocal Rank Fusion) | Open | |
+| U4 | Retrieval provenance in UI/trace/status, README docs, tests | Open | |

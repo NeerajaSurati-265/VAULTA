@@ -1,0 +1,40 @@
+{"id": 1, "question": "How often must grease levels be inspected on Pump-402?", "expected_doc": "SOP-PUMP-402.pdf", "expected_page": 1, "type": "lexical"}
+{"id": 2, "question": "What is the normal operating vibration for the centrifugal feed pump?", "expected_doc": "SOP-PUMP-402.pdf", "expected_page": 2, "type": "lexical"}
+{"id": 3, "question": "What cavitation erosion was observed on the impeller edges?", "expected_doc": "pump_inspection.pdf", "expected_page": 1, "type": "lexical"}
+{"id": 4, "question": "What is the discharge temperature alarm for the compressor?", "expected_doc": "SOP-COMP-210.pdf", "expected_page": 2, "type": "lexical"}
+{"id": 5, "question": "How often should the compressor oil be changed?", "expected_doc": "SOP-COMP-210.pdf", "expected_page": 3, "type": "lexical"}
+{"id": 6, "question": "How often should condensate traps be drained?", "expected_doc": "SOP-COMP-210.pdf", "expected_page": 3, "type": "lexical"}
+{"id": 7, "question": "What is the maximum temperature for heating a bearing with an induction heater?", "expected_doc": "MAN-BRG-115.pdf", "expected_page": 1, "type": "lexical"}
+{"id": 8, "question": "What causes fluting on a bearing?", "expected_doc": "MAN-BRG-115.pdf", "expected_page": 3, "type": "lexical"}
+{"id": 9, "question": "Which grease consistency should be used for bearing lubrication?", "expected_doc": "MAN-BRG-115.pdf", "expected_page": 2, "type": "lexical"}
+{"id": 10, "question": "How do I verify zero energy before servicing?", "expected_doc": "SOP-LOTO-001.pdf", "expected_page": 2, "type": "lexical"}
+{"id": 11, "question": "When should a group lockout box be used?", "expected_doc": "SOP-LOTO-001.pdf", "expected_page": 3, "type": "lexical"}
+{"id": 12, "question": "What was the insulation resistance measured on the motor?", "expected_doc": "RPT-MTR-330.pdf", "expected_page": 1, "type": "lexical"}
+{"id": 13, "question": "What hot spot did thermography find on the terminal box?", "expected_doc": "RPT-MTR-330.pdf", "expected_page": 2, "type": "lexical"}
+{"id": 14, "question": "At what pressure are the heat exchanger tubes hydroblasted?", "expected_doc": "SOP-HX-505.pdf", "expected_page": 2, "type": "lexical"}
+{"id": 15, "question": "What is the hydrostatic test pressure after reassembly?", "expected_doc": "SOP-HX-505.pdf", "expected_page": 3, "type": "lexical"}
+{"id": 16, "question": "The pump is shaking badly - at what level do we have to shut it off?", "expected_doc": "SOP-PUMP-402.pdf", "expected_page": 2, "type": "paraphrase"}
+{"id": 17, "question": "Which oil grade goes into the pump's bearing boxes?", "expected_doc": "SOP-PUMP-402.pdf", "expected_page": 1, "type": "paraphrase"}
+{"id": 18, "question": "What repairs did the crew suggest after looking over the feed pump in August?", "expected_doc": "pump_inspection.pdf", "expected_page": 1, "type": "paraphrase"}
+{"id": 19, "question": "How do I bring the air machine online safely after it has been off?", "expected_doc": "SOP-COMP-210.pdf", "expected_page": 1, "type": "paraphrase"}
+{"id": 20, "question": "When should the intake screen on the air machine be swapped out?", "expected_doc": "SOP-COMP-210.pdf", "expected_page": 2, "type": "paraphrase"}
+{"id": 21, "question": "How frequently should we check the belt for slack?", "expected_doc": "SOP-COMP-210.pdf", "expected_page": 3, "type": "paraphrase"}
+{"id": 22, "question": "Is a blowtorch okay for warming a bearing up before fitting it?", "expected_doc": "MAN-BRG-115.pdf", "expected_page": 1, "type": "paraphrase"}
+{"id": 23, "question": "What goes wrong if you pack too much lubricant into a bearing?", "expected_doc": "MAN-BRG-115.pdf", "expected_page": 2, "type": "paraphrase"}
+{"id": 24, "question": "What do small dents pressed into the race tell me about what happened?", "expected_doc": "MAN-BRG-115.pdf", "expected_page": 3, "type": "paraphrase"}
+{"id": 25, "question": "How do I cut off every power source on a machine before working on it?", "expected_doc": "SOP-LOTO-001.pdf", "expected_page": 2, "type": "paraphrase"}
+{"id": 26, "question": "A colleague went home and left their padlock on - who is allowed to take it off?", "expected_doc": "SOP-LOTO-001.pdf", "expected_page": 3, "type": "paraphrase"}
+{"id": 27, "question": "Who needs to be told before the safety locks go on?", "expected_doc": "SOP-LOTO-001.pdf", "expected_page": 1, "type": "paraphrase"}
+{"id": 28, "question": "Can the fan drive keep running after this checkup, or must it come out?", "expected_doc": "RPT-MTR-330.pdf", "expected_page": 3, "type": "paraphrase"}
+{"id": 29, "question": "How much electricity is the motor pulling compared with its rating?", "expected_doc": "RPT-MTR-330.pdf", "expected_page": 1, "type": "paraphrase"}
+{"id": 30, "question": "How can we tell the tube bundle is dirty enough to need washing?", "expected_doc": "SOP-HX-505.pdf", "expected_page": 1, "type": "paraphrase"}
+{"id": 31, "question": "SOP-PUMP-402-REV3", "expected_doc": "SOP-PUMP-402.pdf", "expected_page": 1, "type": "exact"}
+{"id": 32, "question": "What does 5.0 mm/s mean for the pump?", "expected_doc": "SOP-PUMP-402.pdf", "expected_page": 2, "type": "exact"}
+{"id": 33, "question": "Where was 3.8 mm/s RMS recorded?", "expected_doc": "pump_inspection.pdf", "expected_page": 1, "type": "exact"}
+{"id": 34, "question": "What is the 7.1 mm/s limit for?", "expected_doc": "SOP-COMP-210.pdf", "expected_page": 2, "type": "exact"}
+{"id": 35, "question": "When is valve V-211 opened?", "expected_doc": "SOP-COMP-210.pdf", "expected_page": 1, "type": "exact"}
+{"id": 36, "question": "Where is ISO VG 46 used?", "expected_doc": "SOP-COMP-210.pdf", "expected_page": 3, "type": "exact"}
+{"id": 37, "question": "What is NLGI 2 used for?", "expected_doc": "MAN-BRG-115.pdf", "expected_page": 2, "type": "exact"}
+{"id": 38, "question": "What happens above 4 gE?", "expected_doc": "MAN-BRG-115.pdf", "expected_page": 3, "type": "exact"}
+{"id": 39, "question": "What is recorded on log sheet CL-210?", "expected_doc": "SOP-COMP-210.pdf", "expected_page": 3, "type": "exact"}
+{"id": 40, "question": "What gets torqued to 450 Nm?", "expected_doc": "SOP-HX-505.pdf", "expected_page": 3, "type": "exact"}
