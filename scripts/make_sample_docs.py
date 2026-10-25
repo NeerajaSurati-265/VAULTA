@@ -6,6 +6,11 @@ exist so the knowledge base and the retrieval eval (eval/questions.jsonl) have
 a realistic multi-document corpus. Page 1 of each is labelled
 "Synthetic sample document".
 
+SOP-PUMP-402.pdf was originally hand-made and its long trip-limit line ran off
+the right edge of page 2, so text extraction cut it off (U7). It is generated
+here with the same wording; insert_textbox wraps lines and refuses text that
+does not fit, so no document can be silently truncated.
+
 Usage (from the repo root):
     python scripts/make_sample_docs.py
 """
@@ -19,6 +24,21 @@ LABEL = "Synthetic sample document - fictional data for demos and evaluation onl
 FIXED_DATE = "D:20260901000000Z"
 
 DOCUMENTS = {
+    "SOP-PUMP-402.pdf": [
+        """STANDARD OPERATING PROCEDURE: PUMP-402
+Document ID: SOP-PUMP-402-REV3
+Equipment: Industrial Centrifugal Feed Pump
+
+1. Lubrication Protocol:
+- Grease levels must be inspected every 120 operating hours.
+- Use only synthetic ISO VG 68 lubricant for bearing housings.
+- Avoid overfilling lubricant reservoir above the max sight-glass level.""",
+        """2. Vibration and Temperature Thresholds:
+- Normal operating vibration: < 3.5 mm/s RMS.
+- Warning vibration threshold: 4.5 mm/s RMS.
+- Maximum allowable RMS vibration before trip is 4.5 mm/s. If vibration exceeds 5.0 mm/s, immediately trip the emergency stop circuit.
+- Drive end bearing temperature must not exceed 75°C under continuous load.""",
+    ],
     "SOP-COMP-210.pdf": [
         """STANDARD OPERATING PROCEDURE: COMPRESSOR C-210
 Document ID: SOP-COMP-210-REV2

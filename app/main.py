@@ -5,7 +5,7 @@ from fastapi.responses import Response, JSONResponse
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
-from app.config import LOG_LEVEL
+from app.config import LOG_LEVEL, RETRIEVAL_TOP_K
 
 # Configure logging before importing the services: the knowledge base is built
 # (and logs its ingests) at import time.
@@ -63,7 +63,7 @@ class ChatRequest(BaseModel):
 
 class KnowledgeQueryRequest(BaseModel):
     query: str
-    top_k: int = 3
+    top_k: int = RETRIEVAL_TOP_K
 
 
 class ApprovalNoteRequest(BaseModel):
@@ -450,7 +450,7 @@ async def agent_run(
                 })
 
             # query() retrieves and synthesizes in one pass; reuse its chunks for the trace
-            kb_res = await run_in_threadpool(knowledge_base.query, prompt, top_k=3)
+            kb_res = await run_in_threadpool(knowledge_base.query, prompt, top_k=RETRIEVAL_TOP_K)
             response_text = kb_res.get("response", "")
             retrieved = kb_res.get("retrieved_chunks", [])
             retrieved_chunks = retrieved
@@ -461,7 +461,7 @@ async def agent_run(
                 "details": {
                     "processor": knowledge_base.get_status()["processor"],
                     "retrieval_mode": knowledge_base.retrieval_mode,
-                    "top_k": 3,
+                    "top_k": RETRIEVAL_TOP_K,
                     "chunks_retrieved": len(retrieved),
                     "sources": [describe_chunk(c) for c in retrieved],
                     "chunks": [chunk_provenance(c) for c in retrieved],

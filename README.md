@@ -210,10 +210,10 @@ Other modes (`VAULTA_RETRIEVAL_MODE`): `bm25` (keyword only, no embedding model)
 
 | Mode | Overall hit@1 | Overall hit@3 | Overall hit@5 | Overall MRR | Lexical hit@3 | Paraphrase hit@3 | Exact hit@3 | ms/query | Indexing (s) |
 |------|---|---|---|---|---|---|---|---|---|
-| hashing | 35% | 55% | 70% | 0.470 | 87% | 20% | 60% | 0.2 | 0.02 |
+| hashing | 35% | 55% | 72% | 0.473 | 87% | 20% | 60% | 0.2 | 0.01 |
 | bm25 | 72% | 88% | 90% | 0.794 | 100% | 67% | 100% | 0.1 | 0.01 |
-| semantic | 65% | 90% | 90% | 0.758 | 100% | 93% | 70% | 33.0 | 2.59 |
-| **hybrid** (default) | 68% | 90% | 95% | 0.792 | 100% | 80% | 90% | 32.9 | 2.49 |
+| semantic | 68% | 90% | 90% | 0.767 | 100% | 93% | 70% | 30.1 | 2.21 |
+| **hybrid** (default) | 68% | 90% | 95% | 0.792 | 100% | 80% | 90% | 31.4 | 2.42 |
 
 Reproduce (needs Ollama with `nomic-embed-text` for the semantic and hybrid modes):
 
@@ -224,7 +224,9 @@ python eval/run_eval.py --mode all      # all four modes, comparison table
 
 Results (including per-question ranks) are written to `eval/results/<mode>.json`.
 
-**Caveats:** the five synthetic documents (`scripts/make_sample_docs.py`) and the questions were written by the same author, so this is a sanity benchmark for comparing modes, not an independent one. With 40 questions, one question equals 2.5 percentage points.
+Numbers are after U7 (SOP-PUMP-402 p.2 regenerated with its full text); hybrid ranks were unchanged question by question. The app retrieves `VAULTA_RETRIEVAL_TOP_K` = 5 chunks, so hit@5 is the figure that matters for answers.
+
+**Caveats:** the six synthetic documents (`scripts/make_sample_docs.py`) and the questions were written by the same author, so this is a sanity benchmark for comparing modes, not an independent one. With 40 questions, one question equals 2.5 percentage points.
 
 ### Running the tests
 
@@ -249,6 +251,7 @@ All settings live in `app/config.py` and can be overridden with environment vari
 | `VAULTA_RETRIEVAL_MODE` | `hybrid` | Knowledge-base search: `hashing`, `bm25`, `semantic` or `hybrid` (see "How retrieval works") |
 | `VAULTA_EMBED_MODEL` | `nomic-embed-text` | Ollama embedding model for `semantic` / `hybrid` |
 | `VAULTA_EMBED_BATCH` | `32` | Texts per embedding request |
+| `VAULTA_RETRIEVAL_TOP_K` | `5` | Chunks retrieved per question / investigation (an attached SOP's chunks are taken first) |
 | `VAULTA_BACKEND_URL` | `http://127.0.0.1:8000` | Backend URL used by the UI (and by `run.sh` to pick host/port) |
 | `VAULTA_UI_REQUEST_TIMEOUT` | `2 × OLLAMA_TIMEOUT + 30` | Seconds the UI waits for the backend |
 | `VAULTA_INDEX_DIR` | `data/index` | Where the knowledge-base index is saved |

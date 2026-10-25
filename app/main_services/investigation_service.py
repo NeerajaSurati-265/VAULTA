@@ -1,6 +1,7 @@
 import json
 from typing import Dict, Any, List, Optional
 
+from app.config import RETRIEVAL_TOP_K
 from app.main_services.ollama_service import ask_local_ai, MODEL
 from app.main_services.pdf_service import extract_text_from_pdf
 from app.main_services.data_service import load_dataset, compute_deterministic_analysis
@@ -113,10 +114,22 @@ def run_unified_investigation(
             })
 
     # 4. Stage: KNOWLEDGE_AGENT (SOP & Technical Standard Retrieval)
+    # An attached SOP is the reference the user chose for this investigation, so
+    # its best chunks come first and the rest of top_k comes from the whole
+    # knowledge base. Ranking the whole KB alone can miss it: SOP continuation
+    # pages (e.g. the Pump-402 vibration limits on p.2) do not repeat the
+    # equipment name, so a broad task prompt ranks them below other SOPs (U5).
+    retrieved_chunks: List[Dict[str, Any]] = []
     if sop_file_bytes and sop_filename:
         knowledge_base.ingest_pdf(sop_file_bytes, sop_filename)
+        retrieved_chunks = knowledge_base.retrieve(task_prompt, top_k=RETRIEVAL_TOP_K, doc_names={sop_filename})
 
-    retrieved_chunks = knowledge_base.retrieve(task_prompt, top_k=3)
+    picked = {(c["doc_name"], c["chunk_id"]) for c in retrieved_chunks}
+    for c in knowledge_base.retrieve(task_prompt, top_k=RETRIEVAL_TOP_K):
+        if len(retrieved_chunks) >= RETRIEVAL_TOP_K:
+            break
+        if (c["doc_name"], c["chunk_id"]) not in picked:
+            retrieved_chunks.append(c)
     evidence["sop_standards"] = {
         "retrieved_chunks": retrieved_chunks,
         "sources": [f"{c['doc_name']} (p.{c['page_number']})" for c in retrieved_chunks],
@@ -129,6 +142,7 @@ def run_unified_investigation(
             "agent": "KNOWLEDGE_ANALYST",
             "processor": knowledge_base.get_status()["processor"],
             "retrieval_mode": knowledge_base.retrieval_mode,
+            "top_k": RETRIEVAL_TOP_K,
             "chunks_retrieved": len(retrieved_chunks),
             "sources": [describe_chunk(c) for c in retrieved_chunks],
             "chunks": [chunk_provenance(c) for c in retrieved_chunks],

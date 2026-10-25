@@ -125,3 +125,53 @@ def test_switching_mode_rebuilds_vectors_from_saved_chunks(make_kb, embed_calls,
     embed_calls.clear()
     make_kb(retrieval_mode="semantic")
     assert embed_calls == []
+
+
+# The one-click Pump-402 investigation prompt from app/ui.py
+DEMO_PROMPT = (
+    "Investigate the recurring vibration and downtime on Pump P-402, cross-reference operating logs "
+    "against SOP standards, and prepare an engineering approval note."
+)
+
+
+def test_demo_prompt_retrieves_pump_sop_vibration_page(make_kb):
+    """U5/U7: the SOP page with the vibration limits must be within top_k for the demo prompt."""
+    from app.config import RETRIEVAL_TOP_K
+
+    kb = make_kb(retrieval_mode="bm25", documents_dir=DOCUMENTS)
+    results = kb.retrieve(DEMO_PROMPT, top_k=RETRIEVAL_TOP_K)
+
+    pages = [(c["doc_name"], c["page_number"]) for c in results]
+    assert ("SOP-PUMP-402.pdf", 2) in pages
+    page2 = next(c for c in results if (c["doc_name"], c["page_number"]) == ("SOP-PUMP-402.pdf", 2))
+    assert "emergency stop circuit" in page2["text"]  # U7: no longer cut off
+
+
+def test_doc_names_restricts_retrieval_to_those_documents(make_kb, embed_calls):
+    kb = make_kb(retrieval_mode="hybrid", documents_dir=DOCUMENTS)
+
+    results = kb.retrieve(DEMO_PROMPT, top_k=5, doc_names={"SOP-PUMP-402.pdf"})
+
+    assert {c["doc_name"] for c in results} == {"SOP-PUMP-402.pdf"}
+    assert sorted(c["page_number"] for c in results) == [1, 2]
+
+
+def test_investigation_prompt_contains_attached_sop_limits(make_kb, embed_calls, fake_llm, monkeypatch):
+    """U5: in hybrid mode p.2 ranks 6th over the whole KB, so the attached SOP is searched first."""
+    from app.config import RETRIEVAL_TOP_K
+    from app.main_services import investigation_service
+
+    kb = make_kb(retrieval_mode="hybrid", documents_dir=DOCUMENTS)
+    monkeypatch.setattr(investigation_service, "knowledge_base", kb)
+
+    result = investigation_service.run_unified_investigation(
+        task_prompt=DEMO_PROMPT,
+        sop_file_bytes=(DOCUMENTS / "SOP-PUMP-402.pdf").read_bytes(),
+        sop_filename="SOP-PUMP-402.pdf",
+    )
+
+    pages = [(c["doc_name"], c["page_number"]) for c in result["retrieved_chunks"]]
+    assert set(pages[:2]) == {("SOP-PUMP-402.pdf", 1), ("SOP-PUMP-402.pdf", 2)}  # attached SOP first
+    assert len(pages) == len(set(pages)) == RETRIEVAL_TOP_K  # rest of top_k from the whole KB, no duplicates
+    assert "Warning vibration threshold: 4.5 mm/s RMS" in fake_llm[0]
+    assert "emergency stop circuit" in fake_llm[0]

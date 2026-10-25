@@ -5,14 +5,16 @@ import hashlib
 import logging
 import threading
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Set, Tuple
 import numpy as np
 import faiss
 import fitz
 from rank_bm25 import BM25Okapi
 from sklearn.feature_extraction.text import HashingVectorizer
 
-from app.config import DOCUMENTS_DIR, INDEX_DIR, RETRIEVAL_MODE, EMBED_MODEL, HYBRID_CANDIDATES, RRF_K
+from app.config import (
+    DOCUMENTS_DIR, INDEX_DIR, RETRIEVAL_MODE, EMBED_MODEL, HYBRID_CANDIDATES, RRF_K, RETRIEVAL_TOP_K,
+)
 from app.main_services.ollama_service import ask_local_ai, embed_texts, MODEL
 
 
@@ -170,7 +172,8 @@ class LocalKnowledgeBase:
             return
 
         self.chunks = chunks
-        # Older saves stored just the chunk count; hash unknown -> treated as unchanged
+        # Older saves stored just the chunk count; an unknown hash never counts as
+        # unchanged, so the file is re-indexed once (and hashed) the next time it is ingested
         self.indexed_files = {
             name: info if isinstance(info, dict) else {"chunks": info, "sha256": None}
             for name, info in indexed_files.items()
@@ -246,7 +249,10 @@ class LocalKnowledgeBase:
             return
         for full_p in sorted(dir_path.iterdir()):
             fname = full_p.name
-            if not fname.lower().endswith(".pdf") or fname in self.indexed_files:
+            # Already-indexed files go through ingest_pdf too: it skips them if the
+            # SHA-256 is unchanged and replaces their chunks if the PDF was updated
+            # (e.g. a regenerated sample doc), so a saved index never serves stale text.
+            if not fname.lower().endswith(".pdf"):
                 continue
             try:
                 self.ingest_pdf(full_p.read_bytes(), fname)
@@ -392,7 +398,7 @@ class LocalKnowledgeBase:
 
     def _is_unchanged(self, filename: str, sha256: str) -> bool:
         info = self.indexed_files.get(filename)
-        return info is not None and info.get("sha256") in (sha256, None)
+        return info is not None and info.get("sha256") == sha256
 
     def _remove_file_locked(self, filename: str):
         """Drops a file's vectors and chunks. Caller must hold self._lock."""
@@ -435,13 +441,16 @@ class LocalKnowledgeBase:
         order = np.argsort(scores)[::-1][:n]
         return [(int(i), float(scores[i])) for i in order if scores[i] > 0]
 
-    def retrieve(self, query: str, top_k: int = 3) -> List[Dict[str, Any]]:
+    def retrieve(
+        self, query: str, top_k: int = RETRIEVAL_TOP_K, doc_names: Optional[Set[str]] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Retrieves the top_k most relevant chunks using the configured retrieval mode.
 
         Every returned chunk carries "score" (cosine, BM25 or RRF depending on the
         mode) plus "bm25_rank" and "vector_rank" (1-based, or None) to show why it
-        was picked.
+        was picked. With doc_names, only chunks of those documents are ranked
+        (ranks are then within those documents).
         """
         if not query or not query.strip() or len(self.chunks) == 0:
             return []
@@ -453,17 +462,34 @@ class LocalKnowledgeBase:
 
         # One lock for all rankings so chunk indices cannot shift between them
         with self._lock:
+            # When filtering, rank every chunk and then drop the other documents,
+            # so the wanted chunks are not cut off by the candidate limit first.
+            allowed = None
+            if doc_names is not None:
+                allowed = {i for i, c in enumerate(self.chunks) if c["doc_name"] in doc_names}
+
+            def ranking(rank_fn, n):
+                if allowed is None:
+                    return rank_fn(n)
+                return [(i, s) for i, s in rank_fn(len(self.chunks)) if i in allowed][:n]
+
+            def bm25_ranking(n):
+                return ranking(lambda m: self._bm25_ranking_locked(query, m), n)
+
+            def vector_ranking(n):
+                return ranking(lambda m: self._vector_ranking_locked(q_vec, m), n)
+
             if mode == "bm25":
-                bm25 = self._bm25_ranking_locked(query, top_k)
+                bm25 = bm25_ranking(top_k)
                 vector: List[Tuple[int, float]] = []
                 picked = bm25
             elif mode == "hybrid":
-                bm25 = self._bm25_ranking_locked(query, HYBRID_CANDIDATES)
-                vector = self._vector_ranking_locked(q_vec, HYBRID_CANDIDATES)
+                bm25 = bm25_ranking(HYBRID_CANDIDATES)
+                vector = vector_ranking(HYBRID_CANDIDATES)
                 picked = rrf_merge([[i for i, _ in bm25], [i for i, _ in vector]])[:top_k]
             else:  # hashing / semantic
                 bm25 = []
-                vector = self._vector_ranking_locked(q_vec, top_k)
+                vector = vector_ranking(top_k)
                 picked = vector
 
             bm25_rank = {i: r for r, (i, _) in enumerate(bm25, start=1)}
@@ -488,7 +514,7 @@ class LocalKnowledgeBase:
         )
         return results
 
-    def query(self, query: str, top_k: int = 3) -> Dict[str, Any]:
+    def query(self, query: str, top_k: int = RETRIEVAL_TOP_K) -> Dict[str, Any]:
         """
         Retrieves context and asks local Ollama to synthesize an answer.
         """

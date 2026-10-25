@@ -56,3 +56,36 @@ def test_changed_file_with_same_name_replaces_old_chunks(make_kb):
     assert [c["chunk_id"] for c in kb.chunks] == list(range(len(kb.chunks)))
     # same content again is a no-op
     assert kb.ingest_pdf(other, SOP)["status"] == "already_indexed"
+
+
+def test_startup_reindexes_a_changed_document(make_kb, tmp_path):
+    """E1: a PDF updated in the documents dir must replace its stale chunks in a saved index."""
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / SOP).write_bytes((DOCUMENTS / "pump_inspection.pdf").read_bytes())  # stale content
+    make_kb(documents_dir=docs)
+
+    (docs / SOP).write_bytes(sop_bytes())  # the document is updated on disk
+    restarted = make_kb(documents_dir=docs)  # same saved index
+
+    texts = " ".join(c["text"] for c in restarted.chunks if c["doc_name"] == SOP)
+    assert "emergency stop circuit" in texts
+    assert "INSPECTION REPORT" not in texts
+    assert restarted.index.ntotal == len(restarted.chunks)
+
+
+def test_legacy_entry_without_hash_is_reindexed(make_kb, tmp_path):
+    """E1: saves from before D5 have no SHA-256; they must not hide a changed file forever."""
+    import json
+    from app.main_services.rag_service import META_FILENAME
+
+    kb = make_kb()
+    kb.ingest_pdf((DOCUMENTS / "pump_inspection.pdf").read_bytes(), SOP)  # stale content under the SOP name
+    meta_path = tmp_path / "index" / META_FILENAME
+    meta = json.loads(meta_path.read_text())
+    meta["indexed_files"][SOP] = meta["indexed_files"][SOP]["chunks"]  # old format: chunk count only
+    meta_path.write_text(json.dumps(meta))
+
+    result = make_kb().ingest_pdf(sop_bytes(), SOP)
+
+    assert result["status"] == "replaced"

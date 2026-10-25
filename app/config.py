@@ -27,6 +27,11 @@ EMBED_BATCH_SIZE = int(os.getenv("VAULTA_EMBED_BATCH", "32"))
 # hybrid: candidates taken from each ranker, and the RRF constant (score = sum 1/(RRF_K + rank))
 HYBRID_CANDIDATES = int(os.getenv("VAULTA_HYBRID_CANDIDATES", "20"))
 RRF_K = int(os.getenv("VAULTA_RRF_K", "60"))
+# Chunks retrieved for /agent/run, /investigate and /knowledge/query. 5, not 3:
+# hybrid hit@5 is 95% vs hit@3 90% on the eval set (U5). Chunks are <= 500
+# chars, so each extra chunk adds ~125 tokens; the whole Pump-402 investigation
+# prompt is ~4,400 chars (~1,100 tokens), well inside Ollama's default context.
+RETRIEVAL_TOP_K = int(os.getenv("VAULTA_RETRIEVAL_TOP_K", "5"))
 
 # FastAPI backend, as seen from the Streamlit UI
 BACKEND_URL = os.getenv("VAULTA_BACKEND_URL", "http://127.0.0.1:8000").rstrip("/")
