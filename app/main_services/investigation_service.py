@@ -217,6 +217,7 @@ Provide your Root-Cause Analysis, Evidence Correlation, and Corrective Action Pl
             "grounding_status": verification.get("grounding_status"),
             "numeric_check": verification.get("numeric_check"),
             "source_check": verification.get("source_check"),
+            "comparison_check": verification.get("comparison_check"),
             "warnings": verification.get("warnings"),
             "summary": verification.get("summary"),
             "status": "completed",

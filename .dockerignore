@@ -1,0 +1,17 @@
+# Keep the build context small and free of local state; the Dockerfile
+# copies only app/, data/documents/ and data/spreadsheets/ anyway.
+.git
+.github
+.venv
+venv
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.env
+*.env
+data/index
+eval/results
+tests
+*.docx
+opencode.json

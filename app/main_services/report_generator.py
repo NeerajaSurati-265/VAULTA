@@ -84,6 +84,7 @@ def generate_approval_note(
     v_data = verification or {}
     grounding_status = v_data.get("grounding_status", "VERIFIED")
     numeric_status = v_data.get("numeric_check", "N/A")
+    comparison_status = v_data.get("comparison_check", "N/A")
 
     table = doc.add_table(rows=5, cols=2)
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -99,7 +100,7 @@ def generate_approval_note(
         ("Date & Timestamp:", now_str),
         ("Workflow Route:", f"{route} (Local Open-Weight Model: {model_name})"),
         ("Source File / Target:", filename or "Direct Sovereign Prompt"),
-        ("Verification & Grounding:", f"{grounding_status} (Numeric: {numeric_status}) | External Calls: 0"),
+        ("Verification & Grounding:", f"{grounding_status} (Numeric: {numeric_status}, Comparisons: {comparison_status}) | External Calls: 0"),
     ]
 
     for idx, (label, val) in enumerate(meta_rows):
@@ -119,6 +120,15 @@ def generate_approval_note(
         p_v = cell_val.paragraphs[0]
         r_v = p_v.add_run(str(val))
         r_v.font.size = Pt(9)
+
+    # Verifier warnings (e.g. a wrong above/below comparison) sit right under the
+    # status, so a reviewer sees them before signing off
+    for warning in v_data.get("warnings", []):
+        w_p = doc.add_paragraph(style="List Bullet")
+        w_run = w_p.add_run(f"Verifier warning: {warning}")
+        w_run.font.size = Pt(9)
+        w_run.font.bold = True
+        w_run.font.color.rgb = RGBColor(0xB4, 0x53, 0x09)  # Amber
 
     doc.add_paragraph()
 

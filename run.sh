@@ -84,4 +84,5 @@ if ! curl -fsS -m 2 "$VAULTA_BACKEND_URL/health" >/dev/null 2>&1; then
 fi
 
 # --- 4. Start the UI in the foreground; backend stops when it exits ---
-python -m streamlit run app/ui.py
+# No usage stats: VAULTA makes no external calls
+python -m streamlit run app/ui.py --browser.gatherUsageStats false

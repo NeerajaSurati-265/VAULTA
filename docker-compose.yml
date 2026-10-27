@@ -1,0 +1,96 @@
+# VAULTA with one command:  docker compose up --build   ->  http://localhost:8501
+#
+# ollama       local LLM server (models cached in the ollama_models volume)
+# ollama-pull  one-off: pulls the chat + embedding models, then exits
+#              (slow only on the first run; later runs find them in the volume)
+# api          FastAPI backend (knowledge-base index kept in the vaulta_index volume)
+# ui           Streamlit UI
+#
+# Change models with e.g.  VAULTA_MODEL=qwen2.5:7b docker compose up
+
+# Ollama is pinned to the version VAULTA was tested with; override with OLLAMA_IMAGE_TAG.
+services:
+  ollama:
+    image: ollama/ollama:${OLLAMA_IMAGE_TAG:-0.33.2}
+    volumes:
+      - ollama_models:/root/.ollama
+    # Not published to the host: only api/ui talk to it, over the compose network.
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+    # Optional NVIDIA GPU (needs the NVIDIA Container Toolkit on the host):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  ollama-pull:
+    image: ollama/ollama:${OLLAMA_IMAGE_TAG:-0.33.2}
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - ollama pull "${VAULTA_MODEL:-qwen2.5:3b}" && ollama pull "${VAULTA_EMBED_MODEL:-nomic-embed-text}"
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    # api and ui share one image; both declare the build so compose never tries
+    # to pull "vaulta" from a registry (the second build is a cache hit).
+    build: .
+    image: vaulta:latest
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      OLLAMA_URL: http://ollama:11434
+      VAULTA_MODEL: ${VAULTA_MODEL:-qwen2.5:3b}
+      VAULTA_EMBED_MODEL: ${VAULTA_EMBED_MODEL:-nomic-embed-text}
+      VAULTA_RETRIEVAL_MODE: ${VAULTA_RETRIEVAL_MODE:-hybrid}
+    volumes:
+      - vaulta_index:/app/data/index
+    # Published on localhost only, for curl/debugging; the UI reaches it as http://api:8000
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      ollama:
+        condition: service_healthy
+      ollama-pull:
+        condition: service_completed_successfully
+    # /health answers 200 whenever the API process is up ("degraded" in the body
+    # if Ollama is down), so this checks only the API itself.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=8)"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      # first start indexes data/documents (embeds every chunk via Ollama)
+      start_period: 120s
+    restart: unless-stopped
+
+  ui:
+    build: .
+    image: vaulta:latest
+    command: ["streamlit", "run", "app/ui.py", "--server.address", "0.0.0.0", "--server.port", "8501"]
+    environment:
+      VAULTA_BACKEND_URL: http://api:8000
+      # Shown in the UI's status/sovereignty info; the UI itself only calls the API
+      OLLAMA_URL: http://ollama:11434
+      VAULTA_MODEL: ${VAULTA_MODEL:-qwen2.5:3b}
+    ports:
+      - "8501:8501"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  ollama_models:
+  vaulta_index:

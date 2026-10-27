@@ -101,6 +101,13 @@ def chunk_ranks(chunk):
     """Why a chunk was retrieved: its rank in each ranker ("-" = not in that ranker's list)."""
     return f"BM25 rank: `{chunk.get('bm25_rank') or '-'}` | Vector rank: `{chunk.get('vector_rank') or '-'}`"
 
+
+def show_verification_warnings(verification):
+    """Comparison check result plus every verifier warning, under a verification card."""
+    st.caption(f"Comparison check: `{verification.get('comparison_check', 'N/A')}`")
+    for warning in verification.get("warnings", []):
+        st.warning(warning)
+
 health_data = {"status": "offline", "ollama": "disconnected", "models": [MODEL]}
 kb_data = {"documents_count": 0, "total_chunks": 0, "status": "unavailable"}
 
@@ -273,6 +280,7 @@ with tab_inv:
                         st.info(f"**Source Alignment:** `{inv_v.get('source_check')}`")
                     with v_col3:
                         st.info(f"**Numeric Consistency:** `{inv_v.get('numeric_check')}`")
+                    show_verification_warnings(inv_v)
 
                 # --- ROOT CAUSE FINDINGS ---
                 st.subheader("📋 Root-Cause Investigation & Action Plan")
@@ -391,6 +399,7 @@ with tab_doc:
                             st.info(f"**Source Check:** `{verification.get('source_check')}`")
                         with v3:
                             st.info(f"**Numeric Check:** `{verification.get('numeric_check')}`")
+                        show_verification_warnings(verification)
 
                     st.subheader("Analysis Findings")
                     st.write(result.get("response", ""))
@@ -483,6 +492,7 @@ with tab_data:
                             st.info(f"**Numeric Consistency:** `{verification.get('numeric_check')}`")
                         with v3:
                             st.info(f"**Source Check:** `{verification.get('source_check')}`")
+                        show_verification_warnings(verification)
 
                     # Deterministic Highlights
                     st.subheader("🔢 Deterministic Calculated Results (Pandas)")
@@ -610,6 +620,7 @@ with tab_kb:
                             st.info(f"**Source Check:** `{verification.get('source_check')}`")
                         with v3:
                             st.info(f"**Numeric Check:** `{verification.get('numeric_check')}`")
+                        show_verification_warnings(verification)
 
                     st.subheader("📖 Grounded Answer")
                     st.write(result.get("response", ""))

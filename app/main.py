@@ -501,6 +501,7 @@ async def agent_run(
                 "grounding_status": verification_result["grounding_status"],
                 "numeric_check": verification_result["numeric_check"],
                 "source_check": verification_result["source_check"],
+                "comparison_check": verification_result["comparison_check"],
                 "warnings": verification_result["warnings"],
                 "summary": verification_result["summary"],
                 "status": "completed",
@@ -531,6 +532,8 @@ async def agent_run(
             "grounding_status": "UNGROUNDED",
             "numeric_check": "N/A",
             "source_check": "ERROR",
+            "comparison_check": "N/A",
+            "comparison_issues": [],
             "warnings": [str(e)],
             "summary": "Execution encountered an error.",
         }
